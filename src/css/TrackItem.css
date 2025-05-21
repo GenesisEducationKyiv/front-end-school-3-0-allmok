@@ -1,0 +1,175 @@
+.track-item {
+  display: flex;
+  align-items: center;
+  background-color: var(--bg-secondary);
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid transparent;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  gap: 1rem;
+}
+
+.track-item:hover {
+  background-color: #2a2a2a;
+  border-color: var(--border-color);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.track-item-checkbox {
+  cursor: pointer;
+}
+
+.track-item-cover {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  flex-shrink: 0;
+  background-color: #555;
+}
+
+.track-item-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow: hidden;
+}
+
+.track-item-main-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start; 
+  gap: 1rem;
+}
+
+.track-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-grow: 1;
+  min-width: 0;
+  padding-bottom: 0.25rem;
+}
+
+.play-pause-button {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  border: none;
+  outline: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  flex-shrink: 0;
+  position: relative;
+
+  margin-top: 0.4rem;
+  margin-left: 0.4rem;
+}
+
+
+.play-pause-button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+.play-pause-button:active {
+  transform: scale(0.95);
+}
+.play-pause-button.playing {
+  color: var(--accent-primary);
+}
+.play-pause-button:focus-visible::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border: 2px solid var(--accent-primary);
+  border-radius: 50%;
+  opacity: 0.7;
+}
+
+.track-info span[data-testid*="-title"] {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 1;
+}
+
+.track-info span[data-testid*="-artist"] {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.track-album {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 1;
+}
+
+.track-item.active .track-info span[data-testid*="-artist"],
+.track-item.active .track-info span[data-testid*="-title"] {
+  color: var(--accent-primary);
+}
+
+.track-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+}
+.no-genres {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.waveform-container {
+  width: 100%;
+  height: 50px;
+  margin-top: 0.5rem;
+}
+
+/* (Edit/Delete/Upload)  */
+.track-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+  padding-right: 0.25rem;
+}
+
+.track-actions button {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  line-height: 1.2;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--accent-primary);
+  color: var(--bg-primary);
+  border: none;
+  transition: background-color 0.2s ease, transform 0.1s ease-out;
+}
+
+.track-actions button:hover {
+  background-color: var(--accent-primary-hover);
+}

@@ -10,6 +10,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "coverage": "vitest run --coverage", 
+     "type-check": "tsc --noEmit",
     "lint": "eslint .",
     "preview": "vite preview"
   },

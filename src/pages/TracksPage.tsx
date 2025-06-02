@@ -113,24 +113,23 @@ const TracksPage: React.FC = () => {
       toast.error(`Failed to create track: ${apiError.message}`);
       console.error("Create track error object:", apiError);
       if (apiError.type === 'ApiError' && apiError.statusCode) {
-        const responseBody = apiError.originalError as any; 
-        if (responseBody) {
-          console.error("Server response BODY for ApiError:", responseBody);
-          let serverMessage: string | undefined;
-          if (typeof responseBody.message === 'string') {
-            serverMessage = responseBody.message;
-          } else if (typeof responseBody.error === 'string') { 
-            serverMessage = responseBody.error;
-          } else if (typeof responseBody === 'string') { 
-            serverMessage = responseBody;
-          }
-
+        const responseBody = apiError.originalError;
+        if (typeof responseBody === 'object' && responseBody !== null) {
+          const maybeBody = responseBody as Record<string, unknown>;
+          const serverMessage = typeof maybeBody.message === 'string'
+            ? maybeBody.message
+            : typeof maybeBody.error === 'string'
+            ? maybeBody.error
+            : undefined;
           if (serverMessage) {
             toast.error(`Creation failed: ${serverMessage}`);
           }
         }
+        else if (typeof responseBody === 'string') {
+          toast.error(`Creation failed: ${responseBody}`);
+        }
       } else if (apiError.type === 'ValidationError') {
-        console.error("Validation Error details:", apiError.originalError); 
+        console.error("Validation Error details:", apiError.originalError);
       }
     }
     setMutationLoading(prev => ({ ...prev, isSubmitting: false }));
@@ -153,7 +152,7 @@ const TracksPage: React.FC = () => {
       ...formData,
       title: formData.title ?? originalTrack.title,
       artist: formData.artist ?? originalTrack.artist,
-      genres: formData.genres !== undefined ? formData.genres : originalTrack.genres,
+      genres: formData.genres ?? originalTrack.genres,
     };
 
     const optimisticTracks = [...originalTracks];
@@ -344,7 +343,9 @@ const TracksPage: React.FC = () => {
       />
       <button
         className="fab-create-track"
-        onClick={openModal.create}
+        onClick={() => {
+          openModal.create();
+        }}
         disabled={isBusy}
         data-testid="create-track-button"
         title="Create new track"
@@ -360,9 +361,14 @@ const TracksPage: React.FC = () => {
           <strong>Error loading tracks:</strong> {tracksError.message}
           {(tracksError.type === 'ApiError' && tracksError.statusCode) &&
             ` (Status: ${tracksError.statusCode})`}
-          <button onClick={() => void fetchTracks()} style={{ marginLeft: '10px', fontSize: '0.9em', padding: '0.3em 0.6em'}}>
-            Retry
-          </button>
+              <button
+              onClick={() => {
+              fetchTracks().catch(console.error);
+                }}
+                style={{ marginLeft: '10px', fontSize: '0.9em', padding: '0.3em 0.6em' }}
+>
+  Retry
+</button>
         </div>
       )}
 
@@ -371,13 +377,23 @@ const TracksPage: React.FC = () => {
         isLoading={isLoadingTracks}
         selectionProps={selectionProps}
         selectedTrackIds={selectedTrackIds}
-        onEdit={openModal.edit}
-        onDelete={openModal.delete}
-        onUpload={openModal.upload}
-        onDeleteFile={openModal.deleteFile}
+        onEdit={(id) => {
+          openModal.edit(id);
+        }}
+        onDelete={(id) => {
+          openModal.delete(id);
+        }}
+        onUpload={(id) => {
+          openModal.upload(id);
+        }}
+        onDeleteFile={(id) => {
+          openModal.deleteFile(id);
+        }}
         onGenreRemove={handleTrackGenreRemove}
         isBulkDeleting={mutationLoading.isBulkDeleting}
-        onBulkDelete={handleBulkDeleteOptimistic}
+        onBulkDelete={(ids) => {
+          void handleBulkDeleteOptimistic(ids);
+        }}
       />
 
       {!isLoadingTracks && meta && meta.totalPages > 1 && (
@@ -407,21 +423,27 @@ const TracksPage: React.FC = () => {
         isOpen={!!modalState.uploadingTrackId}
         onClose={closeAllModals}
         trackToUpload={findTrackById(modalState.uploadingTrackId)}
-        onUpload={(id, file) => { void handleUpload(id, file); }}
+        onUpload={(id, file) => {
+          void handleUpload(id, file);
+        }}
         isLoading={mutationLoading.isUploading}
       />
       <DeleteConfirmationDialog
         isOpen={!!modalState.deletingTrackId}
         onClose={closeAllModals}
         trackToDelete={findTrackById(modalState.deletingTrackId)}
-        onConfirm={handleDeleteOptimistic}
+        onConfirm={(id) => {
+          void handleDeleteOptimistic(id);
+        }}
         isLoading={mutationLoading.isDeleting}
       />
       <DeleteFileConfirmationDialog
         isOpen={!!modalState.deletingFileTrackId}
         onClose={closeAllModals}
         trackToDeleteFile={findTrackById(modalState.deletingFileTrackId)}
-        onConfirm={handleDeleteFileOptimistic}
+        onConfirm={(id) => {
+          void handleDeleteFileOptimistic(id);
+        }}
         isLoading={mutationLoading.isDeletingFile}
       />
     </div>

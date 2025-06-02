@@ -1,4 +1,3 @@
-// Загальний тип для помилок API
 export interface ApiError {
     message: string; 
     statusCode?: number | undefined;  

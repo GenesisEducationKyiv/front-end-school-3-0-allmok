@@ -12,8 +12,8 @@ import {
   uploadTrackFile,
   deleteTrackFile,
   deleteMultipleTracks,
-  BulkDeleteResponse,
 } from '../api/trackService';
+
 
 import Pagination from '../components/Pagination/Pagination';
 import { TrackFilters } from '../features/tracks/components/TrackFilters';
@@ -23,7 +23,7 @@ import { EditTrackModal } from '../features/tracks/components/modals/EditTrackMo
 import { TrackUploadModal } from '../features/tracks/components/modals/UploadTrackModal'; 
 import { DeleteConfirmationDialog } from '../components/ConfirmDialog/DeleteConfirmationDialog';
 import { DeleteFileConfirmationDialog } from '../components/ConfirmDialog/DeleteFileConfirmationDialog';
-import { Track, UpdateTrackData } from '../types/track';
+import { BulkDeleteResponse, Track, UpdateTrackData } from '../types/track';
 import { TrackFormData } from '../features/tracks/components/TrackForm';
 
 import '../css/TracksPage.css';
@@ -105,24 +105,40 @@ const TracksPage: React.FC = () => {
   const handleUpdateOptimistic = async (id: string, formData: UpdateTrackData): Promise<void> => {
     const trackIdToUpdate = id;
     if (!trackIdToUpdate) return;
+
     const originalTracks = [...tracks];
     const trackIndex = originalTracks.findIndex(t => t.id === trackIdToUpdate);
-    if (trackIndex === -1) { return; }
+
+    if (trackIndex === -1) {
+      console.error(`Track with ID ${trackIdToUpdate} not found for optimistic update.`);
+      return;
+    }
     const originalTrack = originalTracks[trackIndex];
-    const optimisticTrack = { ...originalTrack, ...formData };
+    const optimisticTrackData: Track = {
+      ...originalTrack,
+      ...formData, 
+      title: formData.title ?? originalTrack.title,
+      artist: formData.artist ?? originalTrack.artist,
+      genres: formData.genres !== undefined ? formData.genres : originalTrack.genres,
+    };
+
     const optimisticTracks = [...originalTracks];
-    optimisticTracks[trackIndex] = optimisticTrack;
+    optimisticTracks[trackIndex] = optimisticTrackData;
+
     setTracks(optimisticTracks);
     closeAllModals();
     setMutationLoading(prev => ({ ...prev, isSubmitting: true }));
+
     try {
       const updatedTrackFromServer = await updateTrack(trackIdToUpdate, formData);
-      setTracks((prev: Track[]) => prev.map(t => t.id === updatedTrackFromServer.id ? updatedTrackFromServer : t));
+      setTracks((prevTracks: Track[]) =>
+        prevTracks.map(t => (t.id === updatedTrackFromServer.id ? updatedTrackFromServer : t))
+      );
       toast.success('Track updated successfully!');
     } catch (err) {
-        toast.error(`Failed to update track: ${err instanceof Error ? err.message : 'Unknown error'}. Reverting changes.`);
-        console.error("Optimistic update failed, rolling back:", err);
-        setTracks(originalTracks);
+      toast.error(`Failed to update track: ${err instanceof Error ? err.message : 'Unknown error'}. Reverting changes.`);
+      console.error("Optimistic update failed, rolling back:", err);
+      setTracks(originalTracks);
     } finally {
       setMutationLoading(prev => ({ ...prev, isSubmitting: false }));
     }
@@ -139,7 +155,7 @@ const TracksPage: React.FC = () => {
     try {
       await deleteTrack(trackIdToDelete);
       toast.success(`Track "${trackToDelete?.title ?? trackIdToDelete}" deleted.`);
-      void fetchTracks(); // Виправляємо floating promise
+      void fetchTracks(); 
     } catch (err) {
         toast.error(`Failed to delete track: ${err instanceof Error ? err.message : 'Unknown error'}. Reverting.`);
         console.error("Optimistic delete failed, rolling back:", err);
@@ -179,7 +195,10 @@ const TracksPage: React.FC = () => {
     setTracks((prev: Track[]) =>
       prev.map(t => {
         if (t.id === trackIdToDeleteFile) {
-          const updatedTrack: Omit<Track, 'audioFile'> & { audioFile?: string } = { ...t };
+          const updatedTrack: Omit<Track, 'audioFile'> & { audioFile?: string | undefined } = { 
+            ...t, 
+            audioFile: t.audioFile ?? undefined 
+          };
           delete updatedTrack.audioFile;
           return updatedTrack as Track; 
         }

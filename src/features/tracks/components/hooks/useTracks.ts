@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast'; 
-import { getTracks, GetTracksParams, GetTracksResponse } from '../../../../api/trackService'; 
+import { getTracks, GetTracksParams} from '../../../../api/trackService'; 
 import { getGenres } from '../../../../api/genreService';
 import { Track, Meta } from '../../../../types/track'; 
 import { TrackFiltersState } from './useTrackFilters'; 

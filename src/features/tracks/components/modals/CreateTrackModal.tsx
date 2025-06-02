@@ -17,7 +17,7 @@ export const CreateTrackModal: React.FC<CreateTrackModalProps> = ({
         <Modal isOpen={isOpen} onClose={onClose} data-testid="create-track-modal">
             <h2 style={{ marginBottom: '1.5rem' }}>Create a new track</h2>
             <TrackForm
-                onSubmit={onSubmit} 
+                onSubmit={onSubmit}
                 onCancel={onClose}
                 availableGenres={availableGenres}
                 isLoading={isLoading}

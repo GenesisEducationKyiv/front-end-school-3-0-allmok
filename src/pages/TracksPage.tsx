@@ -14,7 +14,6 @@ import {
   deleteMultipleTracks,
 } from '../api/trackService';
 
-
 import Pagination from '../components/Pagination/Pagination';
 import { TrackFilters } from '../features/tracks/components/TrackFilters';
 import { TrackList } from '../features/tracks/components/TrackList';
@@ -23,11 +22,11 @@ import { EditTrackModal } from '../features/tracks/components/modals/EditTrackMo
 import { TrackUploadModal } from '../features/tracks/components/modals/UploadTrackModal'; 
 import { DeleteConfirmationDialog } from '../components/ConfirmDialog/DeleteConfirmationDialog';
 import { DeleteFileConfirmationDialog } from '../components/ConfirmDialog/DeleteFileConfirmationDialog';
-import { BulkDeleteResponse, Track, UpdateTrackData } from '../types/track';
-import { TrackFormData } from '../features/tracks/components/TrackForm';
+
+import { Track, UpdateTrackData } from '../types/track';
+import { TrackFormData } from '../features/tracks/components/TrackForm'; 
 
 import '../css/TracksPage.css';
-
 
 const TracksPage: React.FC = () => {
   const [modalState, setModalState] = useState<{
@@ -37,13 +36,19 @@ const TracksPage: React.FC = () => {
     uploadingTrackId: string | null;
     deletingFileTrackId: string | null;
   }>({
-    createOpen: false, editingTrackId: null, deletingTrackId: null,
-    uploadingTrackId: null, deletingFileTrackId: null,
+    createOpen: false,
+    editingTrackId: null,
+    deletingTrackId: null,
+    uploadingTrackId: null,
+    deletingFileTrackId: null,
   });
 
   const [mutationLoading, setMutationLoading] = useState({
-    isSubmitting: false, isDeleting: false, isUploading: false,
-    isDeletingFile: false, isBulkDeleting: false,
+    isSubmitting: false,
+    isDeleting: false,
+    isUploading: false,
+    isDeletingFile: false,
+    isBulkDeleting: false,
   });
 
   const { filters, filterProps } = useTrackFilters();
@@ -61,11 +66,16 @@ const TracksPage: React.FC = () => {
     return [...new Set(tracks.map(t => t.artist))].sort();
   }, [tracks]);
 
-  const { selectedTrackIds, selectionProps, clearSelection } = useBulkActions(tracks.map(t => t.id));
+  const { selectedTrackIds, selectionProps, clearSelection } = useBulkActions(
+    tracks.map(t => t.id)
+  );
 
-  const findTrackById = useCallback((id: string | null): Track | null => {
-    return id ? tracks.find(t => t.id === id) ?? null : null;
-  }, [tracks]);
+  const findTrackById = useCallback(
+    (id: string | null): Track | null => {
+      return id ? tracks.find(t => t.id === id) ?? null : null;
+    },
+    [tracks]
+  );
 
   const openModal = {
     create: () => setModalState(prev => ({ ...prev, createOpen: true })),
@@ -77,29 +87,53 @@ const TracksPage: React.FC = () => {
 
   const closeAllModals = useCallback(() => {
     setModalState({
-      createOpen: false, editingTrackId: null, deletingTrackId: null,
-      uploadingTrackId: null, deletingFileTrackId: null,
+      createOpen: false,
+      editingTrackId: null,
+      deletingTrackId: null,
+      uploadingTrackId: null,
+      deletingFileTrackId: null,
     });
   }, []);
 
   const handleCreate = async (data: TrackFormData): Promise<void> => {
     setMutationLoading(prev => ({ ...prev, isSubmitting: true }));
-    try {
-      await createTrack(data);
+    const result = await createTrack(data);
+
+    if (result.isOk()) {
       toast.success('Track created successfully!');
       closeAllModals();
       if (filters.page !== 1) {
-        filterProps.handlePageChange(1); 
+        filterProps.handlePageChange(1);
       } else {
-        void fetchTracks(); 
+        void fetchTracks();
       }
       clearSelection();
-    } catch (err) {
-      toast.error(`Failed to create track: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      console.error("Create track error:", err);
-    } finally {
-      setMutationLoading(prev => ({ ...prev, isSubmitting: false }));
+    } else {
+      const apiError = result.error;
+      toast.error(`Failed to create track: ${apiError.message}`);
+      console.error("Create track error object:", apiError);
+      if (apiError.type === 'ApiError' && apiError.statusCode) {
+        const responseBody = apiError.originalError as any; 
+        if (responseBody) {
+          console.error("Server response BODY for ApiError:", responseBody);
+          let serverMessage: string | undefined;
+          if (typeof responseBody.message === 'string') {
+            serverMessage = responseBody.message;
+          } else if (typeof responseBody.error === 'string') { 
+            serverMessage = responseBody.error;
+          } else if (typeof responseBody === 'string') { 
+            serverMessage = responseBody;
+          }
+
+          if (serverMessage) {
+            toast.error(`Creation failed: ${serverMessage}`);
+          }
+        }
+      } else if (apiError.type === 'ValidationError') {
+        console.error("Validation Error details:", apiError.originalError); 
+      }
     }
+    setMutationLoading(prev => ({ ...prev, isSubmitting: false }));
   };
 
   const handleUpdateOptimistic = async (id: string, formData: UpdateTrackData): Promise<void> => {
@@ -108,15 +142,15 @@ const TracksPage: React.FC = () => {
 
     const originalTracks = [...tracks];
     const trackIndex = originalTracks.findIndex(t => t.id === trackIdToUpdate);
-
     if (trackIndex === -1) {
-      console.error(`Track with ID ${trackIdToUpdate} not found for optimistic update.`);
+      toast.error("Track not found for update.");
       return;
     }
     const originalTrack = originalTracks[trackIndex];
+
     const optimisticTrackData: Track = {
       ...originalTrack,
-      ...formData, 
+      ...formData,
       title: formData.title ?? originalTrack.title,
       artist: formData.artist ?? originalTrack.artist,
       genres: formData.genres !== undefined ? formData.genres : originalTrack.genres,
@@ -129,144 +163,174 @@ const TracksPage: React.FC = () => {
     closeAllModals();
     setMutationLoading(prev => ({ ...prev, isSubmitting: true }));
 
-    try {
-      const updatedTrackFromServer = await updateTrack(trackIdToUpdate, formData);
+    const result = await updateTrack(trackIdToUpdate, formData);
+
+    if (result.isOk()) {
+      const updatedTrackFromServer = result.value;
       setTracks((prevTracks: Track[]) =>
         prevTracks.map(t => (t.id === updatedTrackFromServer.id ? updatedTrackFromServer : t))
       );
       toast.success('Track updated successfully!');
-    } catch (err) {
-      toast.error(`Failed to update track: ${err instanceof Error ? err.message : 'Unknown error'}. Reverting changes.`);
-      console.error("Optimistic update failed, rolling back:", err);
+    } else {
+      const apiError = result.error;
+      toast.error(`Failed to update track: ${apiError.message}. Reverting changes.`);
+      console.error("Optimistic update failed, rolling back:", apiError);
       setTracks(originalTracks);
-    } finally {
-      setMutationLoading(prev => ({ ...prev, isSubmitting: false }));
     }
+    setMutationLoading(prev => ({ ...prev, isSubmitting: false }));
   };
 
-  const handleDeleteOptimistic = async (trackIdToDelete: string) => {
+  const handleDeleteOptimistic = async (trackIdToDelete: string): Promise<void> => {
     if (!trackIdToDelete) return;
+
     const originalTracks = [...tracks];
     const trackToDelete = originalTracks.find(t => t.id === trackIdToDelete);
+
     setTracks((prev: Track[]) => prev.filter(t => t.id !== trackIdToDelete));
     closeAllModals();
-    clearSelection();
-    setMutationLoading(prev => ({ ...prev, isDeleting: true }));
-    try {
-      await deleteTrack(trackIdToDelete);
-      toast.success(`Track "${trackToDelete?.title ?? trackIdToDelete}" deleted.`);
-      void fetchTracks(); 
-    } catch (err) {
-        toast.error(`Failed to delete track: ${err instanceof Error ? err.message : 'Unknown error'}. Reverting.`);
-        console.error("Optimistic delete failed, rolling back:", err);
-        setTracks(originalTracks);
-    } finally {
-      setMutationLoading(prev => ({ ...prev, isDeleting: false }));
+    if (selectedTrackIds.has(trackIdToDelete)) {
+        clearSelection();
     }
+    setMutationLoading(prev => ({ ...prev, isDeleting: true }));
+
+    const result = await deleteTrack(trackIdToDelete);
+
+    if (result.isOk()) {
+      toast.success(`Track "${trackToDelete?.title ?? trackIdToDelete}" deleted.`);
+      void fetchTracks();
+    } else {
+      const apiError = result.error;
+      toast.error(`Failed to delete track: ${apiError.message}. Reverting.`);
+      console.error("Optimistic delete failed, rolling back:", apiError);
+      setTracks(originalTracks);
+    }
+    setMutationLoading(prev => ({ ...prev, isDeleting: false }));
   };
 
-  const handleTrackGenreRemove = async (trackId: string, genreToRemove: string) => {
+  const handleTrackGenreRemove = async (trackId: string, genreToRemove: string): Promise<void> => {
     const originalTracks = [...tracks];
     const trackIndex = originalTracks.findIndex(t => t.id === trackId);
-    if (trackIndex === -1) {  return; }
+    if (trackIndex === -1) return;
+
     const originalTrack = originalTracks[trackIndex];
     if (!originalTrack.genres.includes(genreToRemove)) return;
+
     const newGenres = originalTrack.genres.filter(g => g !== genreToRemove);
     const optimisticTracks = [...originalTracks];
     optimisticTracks[trackIndex] = { ...originalTrack, genres: newGenres };
+
     setTracks(optimisticTracks);
     setMutationLoading(prev => ({ ...prev, isSubmitting: true }));
-    try {
-      await updateTrack(trackId, { genres: newGenres });
+
+    const result = await updateTrack(trackId, { genres: newGenres });
+
+    if (result.isOk()) {
       toast.success(`Genre "${genreToRemove}" removed from "${originalTrack.title}"`);
-    } catch (err) {
-        toast.error(`Failed to remove genre: ${err instanceof Error ? err.message : 'Unknown error'}. Reverting.`);
-        console.error("Optimistic genre removal failed, rolling back:", err);
-        setTracks(originalTracks);
-    } finally {
-      setMutationLoading(prev => ({ ...prev, isSubmitting: false }));
+    } else {
+      const apiError = result.error;
+      toast.error(`Failed to remove genre: ${apiError.message}. Reverting.`);
+      console.error("Optimistic genre removal failed, rolling back:", apiError);
+      setTracks(originalTracks);
     }
+    setMutationLoading(prev => ({ ...prev, isSubmitting: false }));
   };
 
-  const handleDeleteFileOptimistic = async (trackIdToDeleteFile: string) => {
-     if (!trackIdToDeleteFile) return;
+  const handleDeleteFileOptimistic = async (trackIdToDeleteFile: string): Promise<void> => {
+    if (!trackIdToDeleteFile) return;
+
     const originalTracks = [...tracks];
-    const trackToDeleteFileObj = originalTracks.find(t => t.id === trackIdToDeleteFile);
-    setTracks((prev: Track[]) =>
-      prev.map(t => {
-        if (t.id === trackIdToDeleteFile) {
-          const updatedTrack: Omit<Track, 'audioFile'> & { audioFile?: string | undefined } = { 
-            ...t, 
-            audioFile: t.audioFile ?? undefined 
-          };
-          delete updatedTrack.audioFile;
-          return updatedTrack as Track; 
-        }
-        return t;
-      })
-    );
+    const trackIndex = originalTracks.findIndex(t => t.id === trackIdToDeleteFile);
+    if (trackIndex === -1) {
+      toast.error("Track not found to delete file.");
+      return;
+    }
+    const originalTrack = originalTracks[trackIndex];
+    if (!originalTrack.audioFile) {
+      toast("Track doesn't have an audio file to delete.");
+      closeAllModals();
+      return;
+    }
+
+    const optimisticTrackData: Track = { ...originalTrack, audioFile: undefined };
+    const optimisticTracks = [...originalTracks];
+    optimisticTracks[trackIndex] = optimisticTrackData;
+
+    setTracks(optimisticTracks);
     closeAllModals();
     setMutationLoading(prev => ({ ...prev, isDeletingFile: true }));
-    try {
-      await deleteTrackFile(trackIdToDeleteFile);
-      toast.success(`Audio file for "${trackToDeleteFileObj?.title ?? trackIdToDeleteFile}" deleted.`);
-    } catch (err) {
-        toast.error(`Failed to delete audio file: ${err instanceof Error ? err.message : 'Unknown error'}. Reverting.`);
-        console.error("Optimistic delete file failed, rolling back:", err);
-        setTracks(originalTracks);
-    } finally {
-      setMutationLoading(prev => ({ ...prev, isDeletingFile: false }));
+
+    const result = await deleteTrackFile(trackIdToDeleteFile);
+
+    if (result.isOk()) {
+      const updatedTrackFromServer = result.value;
+      setTracks((prevTracks: Track[]) =>
+        prevTracks.map(t => (t.id === updatedTrackFromServer.id ? updatedTrackFromServer : t))
+      );
+      toast.success(`Audio file for "${originalTrack.title}" deleted successfully.`);
+    } else {
+      const apiError = result.error;
+      toast.error(`Failed to delete audio file: ${apiError.message}. Reverting.`);
+      console.error("Optimistic delete file failed, rolling back:", apiError);
+      setTracks(originalTracks);
     }
+    setMutationLoading(prev => ({ ...prev, isDeletingFile: false }));
   };
 
-   const handleUpload = async (id: string, file: File) => {
+  const handleUpload = async (id: string, file: File): Promise<void> => {
     if (!id) return;
     setMutationLoading(prev => ({ ...prev, isUploading: true }));
-    try {
-      const updatedTrack = await uploadTrackFile(id, file);
-      setTracks((prev: Track[]) => prev.map(t => t.id === updatedTrack.id ? updatedTrack : t));
+    const result = await uploadTrackFile(id, file);
+
+    if (result.isOk()) {
+      const updatedTrack = result.value;
+      setTracks((prev: Track[]) => prev.map(t => (t.id === updatedTrack.id ? updatedTrack : t)));
       toast.success(`Audio file uploaded for "${updatedTrack.title}"!`);
       closeAllModals();
-    } catch (err) {
-       toast.error(`Failed to upload file: ${err instanceof Error ? err.message : 'Unknown error'}`);
-       console.error("Upload track file error:", err);
-    } finally {
-      setMutationLoading(prev => ({ ...prev, isUploading: false }));
+    } else {
+      const apiError = result.error;
+      toast.error(`Failed to upload file: ${apiError.message}`);
+      console.error("Upload track file error object:", apiError);
     }
-   };
+    setMutationLoading(prev => ({ ...prev, isUploading: false }));
+  };
 
-   const handleBulkDeleteOptimistic = async (idsToDelete: string[]) => {
+  const handleBulkDeleteOptimistic = async (idsToDelete: string[]): Promise<void> => {
     if (idsToDelete.length === 0) return;
+
     const originalTracks = [...tracks];
     setTracks((prev: Track[]) => prev.filter(t => !idsToDelete.includes(t.id)));
     clearSelection();
     setMutationLoading(prev => ({ ...prev, isBulkDeleting: true }));
-    try {
-        const result: BulkDeleteResponse = await deleteMultipleTracks(idsToDelete);
-        const successCount = result.success?.length ?? 0;
-        const failedCount = result.failed?.length ?? 0;
 
-        if (successCount > 0) {
-            toast.success(`${successCount} track(s) deleted successfully.`);
-        }
-        if (failedCount > 0) {
-            toast.error(`Failed to delete ${failedCount} track(s). IDs: ${result.failed.join(', ')}`);
-            void fetchTracks(); 
-        } else if (successCount > 0) { 
-             void fetchTracks(); 
-        }
-    } catch (err) {
-        toast.error(`Bulk delete failed: ${err instanceof Error ? err.message : 'Unknown error'}. Reverting.`);
-        console.error("Optimistic bulk delete failed, rolling back:", err);
-        setTracks(originalTracks);
-    } finally {
-         setMutationLoading(prev => ({ ...prev, isBulkDeleting: false }));
+    const result = await deleteMultipleTracks(idsToDelete);
+
+    if (result.isOk()) {
+      const responseData = result.value;
+      const successCount = responseData.success?.length ?? 0;
+      const failedCount = responseData.failed?.length ?? 0;
+
+      if (successCount > 0) toast.success(`${successCount} track(s) deleted successfully.`);
+      if (failedCount > 0) {
+        toast.error(`Failed to delete ${failedCount} track(s). IDs: ${responseData.failed.join(', ')}`);
+        void fetchTracks();
+      } else if (successCount > 0) {
+        void fetchTracks();
+      }
+    } else {
+      const apiError = result.error;
+      toast.error(`Bulk delete failed: ${apiError.message}. Reverting.`);
+      console.error("Optimistic bulk delete failed, rolling back:", apiError);
+      setTracks(originalTracks);
     }
- };
+    setMutationLoading(prev => ({ ...prev, isBulkDeleting: false }));
+  };
 
-  const isAnyMutationLoading = mutationLoading.isSubmitting || mutationLoading.isDeleting ||
-                              mutationLoading.isUploading || mutationLoading.isDeletingFile ||
-                              mutationLoading.isBulkDeleting;
+  const isAnyMutationLoading =
+    mutationLoading.isSubmitting ||
+    mutationLoading.isDeleting ||
+    mutationLoading.isUploading ||
+    mutationLoading.isDeletingFile ||
+    mutationLoading.isBulkDeleting;
   const isBusy = isLoadingTracks || isAnyMutationLoading;
 
   return (
@@ -279,35 +343,43 @@ const TracksPage: React.FC = () => {
         disabled={isBusy}
       />
       <button
-          className="fab-create-track"
-          onClick={openModal.create}
-          disabled={isBusy}
-          data-testid="create-track-button"
-          title="Create new track"
-          data-loading={isBusy}
-          aria-disabled={isBusy}
+        className="fab-create-track"
+        onClick={openModal.create}
+        disabled={isBusy}
+        data-testid="create-track-button"
+        title="Create new track"
+        data-loading={isBusy}
+        aria-disabled={isBusy}
       >
-          <span className="fab-icon" aria-hidden="true">+</span>
-          <span className="fab-text">Add Track</span>
+        <span className="fab-icon" aria-hidden="true">+</span>
+        <span className="fab-text">Add Track</span>
       </button>
+
       {tracksError && !isLoadingTracks && (
         <div className="error-message page-error" data-testid="page-error-message">
-          {tracksError}
+          <strong>Error loading tracks:</strong> {tracksError.message}
+          {(tracksError.type === 'ApiError' && tracksError.statusCode) &&
+            ` (Status: ${tracksError.statusCode})`}
+          <button onClick={() => void fetchTracks()} style={{ marginLeft: '10px', fontSize: '0.9em', padding: '0.3em 0.6em'}}>
+            Retry
+          </button>
         </div>
       )}
+
       <TrackList
         tracks={tracks}
         isLoading={isLoadingTracks}
         selectionProps={selectionProps}
         selectedTrackIds={selectedTrackIds}
         onEdit={openModal.edit}
-        onDelete={openModal.delete} 
+        onDelete={openModal.delete}
         onUpload={openModal.upload}
-        onDeleteFile={openModal.deleteFile} 
+        onDeleteFile={openModal.deleteFile}
         onGenreRemove={handleTrackGenreRemove}
         isBulkDeleting={mutationLoading.isBulkDeleting}
         onBulkDelete={handleBulkDeleteOptimistic}
       />
+
       {!isLoadingTracks && meta && meta.totalPages > 1 && (
         <Pagination
           currentPage={meta.page}
@@ -315,10 +387,11 @@ const TracksPage: React.FC = () => {
           onPageChange={filterProps.handlePageChange}
         />
       )}
+
       <CreateTrackModal
         isOpen={modalState.createOpen}
         onClose={closeAllModals}
-        onSubmit={(data) => handleCreate(data)}
+        onSubmit={handleCreate}
         availableGenres={availableGenres}
         isLoading={mutationLoading.isSubmitting}
       />
@@ -326,7 +399,7 @@ const TracksPage: React.FC = () => {
         isOpen={!!modalState.editingTrackId}
         onClose={closeAllModals}
         trackToEdit={findTrackById(modalState.editingTrackId)}
-        onSubmit={(id, data) => handleUpdateOptimistic(id, data)} 
+        onSubmit={handleUpdateOptimistic}
         availableGenres={availableGenres}
         isLoading={mutationLoading.isSubmitting}
       />
@@ -334,21 +407,21 @@ const TracksPage: React.FC = () => {
         isOpen={!!modalState.uploadingTrackId}
         onClose={closeAllModals}
         trackToUpload={findTrackById(modalState.uploadingTrackId)}
-        onUpload={(trackId, file) => { void handleUpload(trackId, file); }}
+        onUpload={(id, file) => { void handleUpload(id, file); }}
         isLoading={mutationLoading.isUploading}
       />
       <DeleteConfirmationDialog
         isOpen={!!modalState.deletingTrackId}
         onClose={closeAllModals}
         trackToDelete={findTrackById(modalState.deletingTrackId)}
-        onConfirm={(trackId) => { void handleDeleteOptimistic(trackId); }}
+        onConfirm={handleDeleteOptimistic}
         isLoading={mutationLoading.isDeleting}
       />
       <DeleteFileConfirmationDialog
         isOpen={!!modalState.deletingFileTrackId}
         onClose={closeAllModals}
         trackToDeleteFile={findTrackById(modalState.deletingFileTrackId)}
-        onConfirm={(trackId) => { void handleDeleteFileOptimistic(trackId); }}
+        onConfirm={handleDeleteFileOptimistic}
         isLoading={mutationLoading.isDeletingFile}
       />
     </div>

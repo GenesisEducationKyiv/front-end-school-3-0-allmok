@@ -3,18 +3,20 @@ import axiosInstance from './axiosInstance';
 import { z } from 'zod'; 
 import {
   Track,
- // TracksApiResponse,
- // Meta,
+  GetTracksResponse,
   NewTrackData,
   UpdateTrackData,
-  BulkDeleteResponse, 
+  BulkDeleteResponse,
   TrackSchema,
-  TracksApiResponseSchema,
+  TracksApiResponseSchema, 
   BulkDeleteResponseSchema,
   NewTrackDataSchema,
   UpdateTrackDataSchema,
-  GetTracksResponse, 
+ // GetTracksResponseSchema, 
 } from '../types/track'; 
+
+import { Result, ok, err } from 'neverthrow'; 
+import { AppError, createApiError, createValidationError, createNotFoundError, createUnknownError } from '../types/errors'; 
 
 export interface GetTracksParams {
   page?: number;
@@ -169,10 +171,146 @@ class TrackService {
 const trackService = new TrackService();
 export default trackService;
 
-export const getTracks = trackService.getTracks.bind(trackService);
-export const createTrack = trackService.createTrack.bind(trackService);
-export const deleteTrack = trackService.deleteTrack.bind(trackService);
-export const updateTrack = trackService.updateTrack.bind(trackService);
-export const uploadTrackFile = trackService.uploadTrackFile.bind(trackService);
-export const deleteTrackFile = trackService.deleteTrackFile.bind(trackService);
-export const deleteMultipleTracks = trackService.deleteMultipleTracks.bind(trackService);
+export const getTracks = async (params: GetTracksParams = {}): Promise<Result<GetTracksResponse, AppError>> => {
+	const cleanParams = <T,>(p: T): Partial<T> => {
+	  const cleaned: Partial<T> = {};
+	  Object.entries(p as any).forEach(([key, value]) => {
+		  if (value !== undefined && value !== null && value !== '') {
+			  (cleaned as any)[key] = value;
+		  }
+	  });
+	  return cleaned;
+	};
+  
+	try {
+	  const response = await axiosInstance.get<unknown>('/tracks', { 
+		params: cleanParams(params),
+	  });
+	  const parsedServerResponse = TracksApiResponseSchema.parse(response.data);
+	  const resultForHook: GetTracksResponse = {
+		tracks: parsedServerResponse.data, 
+		meta: parsedServerResponse.meta,
+	  };
+  
+	  return ok(resultForHook);
+  
+	} catch (error) {
+	  console.error('getTracks error:', error);
+	  if (error instanceof z.ZodError) {
+		console.error('Zod validation details:', error.format());
+		return err(createValidationError("Invalid data format for tracks list.", error));
+	  }
+	  if (axios.isAxiosError(error)) {
+		if (error.response) {
+		  return err(createApiError(
+			`Failed to download tracks: ${error.response.status}`,
+			error.response.status,
+			error.response.data
+		  ));
+		}
+		return err(createApiError(`Network error fetching tracks: ${error.message}`, undefined, error));
+	  }
+	  return err(createUnknownError('Failed to download tracks.', error));
+	}
+  };
+  
+  export const createTrack = async (trackData: NewTrackData): Promise<Result<Track, AppError>> => {
+	try {
+	  const validatedData = NewTrackDataSchema.parse(trackData);
+	  const response = await axiosInstance.post<unknown>('/tracks', validatedData);
+	  const parsedTrack = TrackSchema.parse(response.data);
+	  return ok(parsedTrack);
+	} catch (error) {
+	  console.error('createTrack error:', error);
+	  if (error instanceof z.ZodError) {
+		return err(createValidationError("Invalid track data provided or received.", error));
+	  }
+	  if (axios.isAxiosError(error) && error.response) {
+		return err(createApiError(`Track creation error: ${error.response.status}`, error.response.status, error.response.data));
+	  }
+	  return err(createUnknownError('Track creation error.', error));
+	}
+  };
+  
+  export const deleteTrack = async (id: string): Promise<Result<void, AppError>> => {
+	  try {
+		  await axiosInstance.delete(`/tracks/${id}`);
+		  return ok(undefined); 
+	  } catch (error) {
+		  console.error(`deleteTrack(${id}) error:`, error);
+		  if (axios.isAxiosError(error) && error.response) {
+			  if (error.response.status === 404) {
+				  return err(createNotFoundError(`Track with ID ${id} not found.`, 'Track', id));
+			  }
+			  return err(createApiError(`Track deletion error ${id}: ${error.response.status}`, error.response.status, error.response.data));
+		  }
+		  return err(createUnknownError(`Track deletion error ${id}.`, error));
+	  }
+  };
+  
+  export const updateTrack = async (id: string, trackData: UpdateTrackData): Promise<Result<Track, AppError>> => {
+	  try {
+		  const validatedData = UpdateTrackDataSchema.parse(trackData);
+		  const response = await axiosInstance.put<unknown>(`/tracks/${id}`, validatedData);
+		  const parsedTrack = TrackSchema.parse(response.data);
+		  return ok(parsedTrack);
+	  } catch (error) {
+		  console.error(`updateTrack(${id}) error:`, error);
+		  if (error instanceof z.ZodError) {
+			  return err(createValidationError(`Invalid track data for update or received. ID: ${id}`, error));
+		  }
+		  if (axios.isAxiosError(error) && error.response) {
+			   if (error.response.status === 404) {
+				  return err(createNotFoundError(`Track with ID ${id} not found for update.`, 'Track', id));
+			  }
+			  return err(createApiError(`Track update error ${id}: ${error.response.status}`, error.response.status, error.response.data));
+		  }
+		  return err(createUnknownError(`Track update error ${id}.`, error));
+	  }
+  };
+  
+  
+  export const uploadTrackFile = async (id: string, file: File): Promise<Result<Track, AppError>> => {
+	  const formData = new FormData();
+	  formData.append('trackFile', file);
+	  try {
+		  const response = await axiosInstance.post<unknown>(
+			  `/tracks/${id}/upload`,
+			  formData,
+			  { headers: { 'Content-Type': 'multipart/form-data' } }
+		  );
+		  const parsedTrack = TrackSchema.parse(response.data);
+		  return ok(parsedTrack);
+	  } catch (error) {
+		  console.error(`uploadTrackFile(${id}) error:`, error);
+		  if (error instanceof z.ZodError) return err(createValidationError('Invalid track data after file upload.', error));
+		  if (axios.isAxiosError(error) && error.response) return err(createApiError('File upload failed.', error.response.status, error.response.data));
+		  return err(createUnknownError('File upload failed.', error));
+	  }
+  };
+  
+  export const deleteTrackFile = async (id: string): Promise<Result<Track, AppError>> => {
+	  try {
+		  const response = await axiosInstance.delete<unknown>(`/tracks/${id}/file`);
+		  const parsedTrack = TrackSchema.parse(response.data);
+		  return ok(parsedTrack);
+	  } catch (error) {
+		  console.error(`deleteTrackFile(${id}) error:`, error);
+		  if (error instanceof z.ZodError) return err(createValidationError('Invalid track data after file deletion.', error));
+		  if (axios.isAxiosError(error) && error.response) return err(createApiError('File deletion failed.', error.response.status, error.response.data));
+		  return err(createUnknownError('File deletion failed.', error));
+	  }
+  };
+  
+  export const deleteMultipleTracks = async (ids: string[]): Promise<Result<BulkDeleteResponse, AppError>> => {
+	  try {
+		  const response = await axiosInstance.post<unknown>('/tracks/delete', { ids });
+		  const parsedResponse = BulkDeleteResponseSchema.parse(response.data);
+		  return ok(parsedResponse);
+	  } catch (error) {
+		  console.error(`deleteMultipleTracks error:`, error);
+		  if (error instanceof z.ZodError) return err(createValidationError('Invalid response for bulk delete.', error));
+		  if (axios.isAxiosError(error) && error.response) return err(createApiError('Bulk delete failed.', error.response.status, error.response.data));
+		  return err(createUnknownError('Bulk delete failed.', error));
+	  }
+  };

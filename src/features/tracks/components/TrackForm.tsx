@@ -6,7 +6,7 @@ export interface TrackFormData {
   title: string;
   artist: string;
   album: string;
-  coverImage: string;
+  coverImage: string; 
   genres: string[];
 }
 
@@ -18,60 +18,68 @@ interface FormErrors {
 }
 
 interface TrackFormProps {
-  onSubmit: (formData: TrackFormData) => void;
+  onSubmit: (formData: TrackFormData) => Promise<void> | void; 
   onCancel: () => void;
-  initialData?: Partial<TrackFormData>; 
-  availableGenres: string[]; 
-  isLoading?: boolean; 
+  initialData?: Partial<TrackFormData>;
+  availableGenres: string[];
+  isLoading?: boolean;
 }
 
 const TrackForm: React.FC<TrackFormProps> = ({
   onSubmit,
   onCancel,
-  initialData = {}, 
+  initialData = {},
   availableGenres = [],
   isLoading = false,
 }) => {
-
-  const [title, setTitle] = useState(initialData.title || '');
-  const [artist, setArtist] = useState(initialData.artist || '');
-  const [album, setAlbum] = useState(initialData.album || '');
-  const [coverImage, setCoverImage] = useState(initialData.coverImage || '');
-  const [selectedGenres, setSelectedGenres] = useState<string[]>(initialData.genres || []);
-  const [genreToAdd, setGenreToAdd] = useState<string>(''); 
+  const [title, setTitle] = useState(initialData.title ?? '');
+  const [artist, setArtist] = useState(initialData.artist ?? '');
+  const [album, setAlbum] = useState(initialData.album ?? ''); 
+  const [coverImage, setCoverImage] = useState(initialData.coverImage ?? ''); 
+  const [selectedGenres, setSelectedGenres] = useState<string[]>(initialData.genres ?? []);
+  const [genreToAdd, setGenreToAdd] = useState<string>('');
   const [errors, setErrors] = useState<FormErrors>({});
 
   const isValidUrl = (url: string): boolean => {
-    if (!url) return true; 
+    if (!url) return true;
     try {
       new URL(url);
       return /\.(jpeg|jpg|gif|png|webp)$/i.test(url);
-    } catch (_) {
+    } catch {
       return false;
     }
   };
-
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
     if (!title.trim()) newErrors.title = "Track name is required";
     if (!artist.trim()) newErrors.artist = "Artist name is required";
     if (selectedGenres.length === 0) newErrors.genres = "Choose at least one genre";
-    if (coverImage && !isValidUrl(coverImage)) newErrors.coverImage = "Please enter a valid image link (jpg, png, gif, webp)";
+    if (coverImage.trim() && !isValidUrl(coverImage)) {
+      newErrors.coverImage = "Please enter a valid image link (jpg, png, gif, webp)";
+    }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0; 
+    return Object.keys(newErrors).length === 0;
   };
-
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+  
     if (name === 'title') setTitle(value);
-    if (name === 'artist') setArtist(value);
-    if (name === 'album') setAlbum(value);
-    if (name === 'coverImage') setCoverImage(value);
-    if (errors[name as keyof FormErrors]) {
-       setErrors(prev => ({ ...prev, [name]: undefined }));
+    else if (name === 'artist') setArtist(value);
+    else if (name === 'album') setAlbum(value);
+    else if (name === 'coverImage') setCoverImage(value);
+
+    if (Object.prototype.hasOwnProperty.call(errors, name)) {
+      const fieldName = name as keyof FormErrors; 
+      if (errors[fieldName]) { 
+        setErrors(prevErrors => {
+          const updatedErrors = { ...prevErrors };
+          delete updatedErrors[fieldName];
+          return updatedErrors;
+        });
+      }
     }
   };
 
@@ -82,10 +90,14 @@ const TrackForm: React.FC<TrackFormProps> = ({
   const handleAddGenre = () => {
     if (genreToAdd && !selectedGenres.includes(genreToAdd)) {
       setSelectedGenres([...selectedGenres, genreToAdd]);
-      setGenreToAdd(''); 
-       if (errors.genres) {
-         setErrors(prev => ({ ...prev, genres: undefined }));
-       }
+      setGenreToAdd('');
+      if (errors.genres) {
+        setErrors(prevErrors => {
+          const updatedErrors = { ...prevErrors };
+          delete updatedErrors.genres;
+          return updatedErrors;
+        });
+      }
     }
   };
 
@@ -96,8 +108,14 @@ const TrackForm: React.FC<TrackFormProps> = ({
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (validateForm()) {
-      const formData: TrackFormData = { title, artist, album, coverImage, genres: selectedGenres };
-      onSubmit(formData); 
+      const formData: TrackFormData = {
+        title,
+        artist,
+        album: album,
+        coverImage: coverImage, 
+        genres: selectedGenres
+      };
+      onSubmit(formData);
     } else {
       console.log("Validation failed:", errors);
     }
@@ -106,6 +124,7 @@ const TrackForm: React.FC<TrackFormProps> = ({
   const genresForSelect = availableGenres.filter(g => !selectedGenres.includes(g));
 
   return (
+    // JSX
     <form onSubmit={handleSubmit} data-testid="track-form" noValidate>
       {/* Track name */}
       <div className="form-group">
@@ -183,7 +202,7 @@ const TrackForm: React.FC<TrackFormProps> = ({
             <p>No genre selected.</p>
           )}
         </div>
-        
+
          {errors.genres && <p className="error-message" data-testid="error-genre">{errors.genres}</p>}
 
         <div className="genre-adder" data-testid="genre-selector">
@@ -204,7 +223,7 @@ const TrackForm: React.FC<TrackFormProps> = ({
         <button
           type="submit"
           data-testid="submit-button"
-          disabled={isLoading} 
+          disabled={isLoading}
           data-loading={isLoading}
           aria-disabled={isLoading}
         >

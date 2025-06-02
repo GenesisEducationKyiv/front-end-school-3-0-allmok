@@ -13,6 +13,12 @@ export interface GetTracksParams {
   artist?: string;  
 }
 
+interface ApiErrorResponse { 
+  error?: string;
+  message?: string;
+
+}
+
 export interface GetTracksResponse {
   tracks: Track[];
   meta: Meta;
@@ -32,13 +38,24 @@ class TrackService {
    */
   private handleAxiosError(err: unknown, defaultMessage: string): string {
     if (axios.isAxiosError(err)) {
-      const axiosErr = err as AxiosError<any>;
-      return axiosErr.response?.data?.error || 
-             axiosErr.response?.data?.message || 
-             (axiosErr.response?.data && typeof axiosErr.response.data === 'string' 
-               ? axiosErr.response.data 
-               : JSON.stringify(axiosErr.response?.data)) || 
-             axiosErr.message;
+      const axiosErr = err as AxiosError<ApiErrorResponse | string | unknown>; 
+  
+      if (axiosErr.response?.data) {
+        const responseData = axiosErr.response.data;
+        if (typeof responseData === 'object' && responseData !== null) {
+          if ('error' in responseData && typeof responseData.error === 'string') {
+            return responseData.error;
+          }
+          if ('message' in responseData && typeof responseData.message === 'string') {
+            return responseData.message;
+          }
+        }
+        if (typeof responseData === 'string') {
+          return responseData;
+        }
+        return JSON.stringify(responseData);
+      }
+      return axiosErr.message; 
     } else if (err instanceof Error) {
       return err.message;
     }
@@ -50,13 +67,16 @@ class TrackService {
    * @param params
    * @returns
    */
-  private cleanParams<T>(params: T): Partial<T> {
+  private cleanParams<T extends object>(params: T): Partial<T> { 
     const cleaned: Partial<T> = {};
-    Object.entries(params as any).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        (cleaned as any)[key] = value;
+    for (const key in params) {
+      if (Object.prototype.hasOwnProperty.call(params, key)) {
+        const value = params[key];
+        if (value !== undefined && value !== null && value !== '') {
+          cleaned[key] = value;
+        }
       }
-    });
+    }
     return cleaned;
   }
 

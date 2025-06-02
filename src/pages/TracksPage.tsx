@@ -1,32 +1,32 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import toast from 'react-hot-toast'; 
+import toast from 'react-hot-toast';
 
 import { useTrackFilters } from '../features/tracks/components/hooks/useTrackFilters';
 import { useTracks } from '../features/tracks/components/hooks/useTracks';
 import { useBulkActions } from '../features/tracks/components/hooks/useBulkActions';
 
 import {
-  createTrack, 
+  createTrack,
   deleteTrack,
   updateTrack,
-  uploadTrackFile, 
+  uploadTrackFile,
   deleteTrackFile,
   deleteMultipleTracks,
-  BulkDeleteResponse, 
-} from '../api/trackService'; 
+  BulkDeleteResponse,
+} from '../api/trackService';
 
 import Pagination from '../components/Pagination/Pagination';
 import { TrackFilters } from '../features/tracks/components/TrackFilters';
 import { TrackList } from '../features/tracks/components/TrackList';
 import { CreateTrackModal } from '../features/tracks/components/modals/CreateTrackModal';
 import { EditTrackModal } from '../features/tracks/components/modals/EditTrackModal';
-import { TrackUploadModal } from '../features/tracks/components/modals/UploadTrackModal';
+import { TrackUploadModal } from '../features/tracks/components/modals/UploadTrackModal'; 
 import { DeleteConfirmationDialog } from '../components/ConfirmDialog/DeleteConfirmationDialog';
 import { DeleteFileConfirmationDialog } from '../components/ConfirmDialog/DeleteFileConfirmationDialog';
 import { Track, UpdateTrackData } from '../types/track';
-import { TrackFormData } from '../features/tracks/components/TrackForm'; 
+import { TrackFormData } from '../features/tracks/components/TrackForm';
 
-import '../css/TracksPage.css'; 
+import '../css/TracksPage.css';
 
 
 const TracksPage: React.FC = () => {
@@ -46,11 +46,10 @@ const TracksPage: React.FC = () => {
     isDeletingFile: false, isBulkDeleting: false,
   });
 
-  // Custom Hooks 
   const { filters, filterProps } = useTrackFilters();
   const {
     tracks,
-    setTracks, 
+    setTracks,
     meta,
     isLoading: isLoadingTracks,
     error: tracksError,
@@ -64,7 +63,6 @@ const TracksPage: React.FC = () => {
 
   const { selectedTrackIds, selectionProps, clearSelection } = useBulkActions(tracks.map(t => t.id));
 
-  // Modal Control Logic 
   const findTrackById = useCallback((id: string | null): Track | null => {
     return id ? tracks.find(t => t.id === id) ?? null : null;
   }, [tracks]);
@@ -84,18 +82,16 @@ const TracksPage: React.FC = () => {
     });
   }, []);
 
-
-  // CREATE (Non-Optimistic)
-  const handleCreate = async (data: TrackFormData) => {
+  const handleCreate = async (data: TrackFormData): Promise<void> => {
     setMutationLoading(prev => ({ ...prev, isSubmitting: true }));
     try {
       await createTrack(data);
       toast.success('Track created successfully!');
       closeAllModals();
       if (filters.page !== 1) {
-        filterProps.handlePageChange(1);
+        filterProps.handlePageChange(1); 
       } else {
-        fetchTracks();
+        void fetchTracks(); 
       }
       clearSelection();
     } catch (err) {
@@ -106,13 +102,12 @@ const TracksPage: React.FC = () => {
     }
   };
 
-  // UPDATE (Optimistic)
-  const handleUpdateOptimistic = async (id: string, formData: UpdateTrackData) => {
+  const handleUpdateOptimistic = async (id: string, formData: UpdateTrackData): Promise<void> => {
     const trackIdToUpdate = id;
     if (!trackIdToUpdate) return;
     const originalTracks = [...tracks];
     const trackIndex = originalTracks.findIndex(t => t.id === trackIdToUpdate);
-    if (trackIndex === -1) { /* ... error handling ... */ return; }
+    if (trackIndex === -1) { return; }
     const originalTrack = originalTracks[trackIndex];
     const optimisticTrack = { ...originalTrack, ...formData };
     const optimisticTracks = [...originalTracks];
@@ -124,7 +119,7 @@ const TracksPage: React.FC = () => {
       const updatedTrackFromServer = await updateTrack(trackIdToUpdate, formData);
       setTracks((prev: Track[]) => prev.map(t => t.id === updatedTrackFromServer.id ? updatedTrackFromServer : t));
       toast.success('Track updated successfully!');
-    } catch (err) { 
+    } catch (err) {
         toast.error(`Failed to update track: ${err instanceof Error ? err.message : 'Unknown error'}. Reverting changes.`);
         console.error("Optimistic update failed, rolling back:", err);
         setTracks(originalTracks);
@@ -133,7 +128,6 @@ const TracksPage: React.FC = () => {
     }
   };
 
-  // DELETE (Optimistic)
   const handleDeleteOptimistic = async (trackIdToDelete: string) => {
     if (!trackIdToDelete) return;
     const originalTracks = [...tracks];
@@ -145,8 +139,8 @@ const TracksPage: React.FC = () => {
     try {
       await deleteTrack(trackIdToDelete);
       toast.success(`Track "${trackToDelete?.title ?? trackIdToDelete}" deleted.`);
-      fetchTracks(); 
-    } catch (err) { 
+      void fetchTracks(); // Виправляємо floating promise
+    } catch (err) {
         toast.error(`Failed to delete track: ${err instanceof Error ? err.message : 'Unknown error'}. Reverting.`);
         console.error("Optimistic delete failed, rolling back:", err);
         setTracks(originalTracks);
@@ -155,7 +149,6 @@ const TracksPage: React.FC = () => {
     }
   };
 
-  //  handleTrackGenreRemove (Optimistic)
   const handleTrackGenreRemove = async (trackId: string, genreToRemove: string) => {
     const originalTracks = [...tracks];
     const trackIndex = originalTracks.findIndex(t => t.id === trackId);
@@ -166,11 +159,11 @@ const TracksPage: React.FC = () => {
     const optimisticTracks = [...originalTracks];
     optimisticTracks[trackIndex] = { ...originalTrack, genres: newGenres };
     setTracks(optimisticTracks);
-    setMutationLoading(prev => ({ ...prev, isSubmitting: true })); 
+    setMutationLoading(prev => ({ ...prev, isSubmitting: true }));
     try {
-      await updateTrack(trackId, { genres: newGenres }); 
+      await updateTrack(trackId, { genres: newGenres });
       toast.success(`Genre "${genreToRemove}" removed from "${originalTrack.title}"`);
-    } catch (err) { 
+    } catch (err) {
         toast.error(`Failed to remove genre: ${err instanceof Error ? err.message : 'Unknown error'}. Reverting.`);
         console.error("Optimistic genre removal failed, rolling back:", err);
         setTracks(originalTracks);
@@ -179,12 +172,20 @@ const TracksPage: React.FC = () => {
     }
   };
 
-  // DELETE FILE (Optimistic)
   const handleDeleteFileOptimistic = async (trackIdToDeleteFile: string) => {
      if (!trackIdToDeleteFile) return;
     const originalTracks = [...tracks];
     const trackToDeleteFileObj = originalTracks.find(t => t.id === trackIdToDeleteFile);
-    setTracks((prev: Track[]) => prev.map(t => t.id === trackIdToDeleteFile ? { ...t, audioFile: undefined } : t));
+    setTracks((prev: Track[]) =>
+      prev.map(t => {
+        if (t.id === trackIdToDeleteFile) {
+          const updatedTrack: Omit<Track, 'audioFile'> & { audioFile?: string } = { ...t };
+          delete updatedTrack.audioFile;
+          return updatedTrack as Track; 
+        }
+        return t;
+      })
+    );
     closeAllModals();
     setMutationLoading(prev => ({ ...prev, isDeletingFile: true }));
     try {
@@ -199,7 +200,6 @@ const TracksPage: React.FC = () => {
     }
   };
 
-   // UPLOAD (Non-Optimistic)
    const handleUpload = async (id: string, file: File) => {
     if (!id) return;
     setMutationLoading(prev => ({ ...prev, isUploading: true }));
@@ -216,19 +216,14 @@ const TracksPage: React.FC = () => {
     }
    };
 
-   // BULK DELETE (Optimistic)
    const handleBulkDeleteOptimistic = async (idsToDelete: string[]) => {
     if (idsToDelete.length === 0) return;
-
     const originalTracks = [...tracks];
-
-    // Optimistically remove from UI
-    setTracks((prev: any[]) => prev.filter(t => !idsToDelete.includes(t.id)));
+    setTracks((prev: Track[]) => prev.filter(t => !idsToDelete.includes(t.id)));
     clearSelection();
     setMutationLoading(prev => ({ ...prev, isBulkDeleting: true }));
-
     try {
-        const result: BulkDeleteResponse = await deleteMultipleTracks(idsToDelete); // API Call
+        const result: BulkDeleteResponse = await deleteMultipleTracks(idsToDelete);
         const successCount = result.success?.length ?? 0;
         const failedCount = result.failed?.length ?? 0;
 
@@ -237,21 +232,19 @@ const TracksPage: React.FC = () => {
         }
         if (failedCount > 0) {
             toast.error(`Failed to delete ${failedCount} track(s). IDs: ${result.failed.join(', ')}`);
-            fetchTracks();
-        } else {
-            fetchTracks();
+            void fetchTracks(); 
+        } else if (successCount > 0) { 
+             void fetchTracks(); 
         }
-
     } catch (err) {
         toast.error(`Bulk delete failed: ${err instanceof Error ? err.message : 'Unknown error'}. Reverting.`);
         console.error("Optimistic bulk delete failed, rolling back:", err);
-        setTracks(originalTracks); 
+        setTracks(originalTracks);
     } finally {
          setMutationLoading(prev => ({ ...prev, isBulkDeleting: false }));
     }
  };
 
-  // Combined Loading States 
   const isAnyMutationLoading = mutationLoading.isSubmitting || mutationLoading.isDeleting ||
                               mutationLoading.isUploading || mutationLoading.isDeletingFile ||
                               mutationLoading.isBulkDeleting;
@@ -260,34 +253,29 @@ const TracksPage: React.FC = () => {
   return (
     <div className="tracks-page">
       <h1 data-testid="tracks-header">Tracks</h1>
-
       <TrackFilters
         {...filterProps}
         availableGenres={availableGenres}
         uniqueArtists={uniqueArtists}
         disabled={isBusy}
       />
-
- {/* FAB Create Button */}
- <button
+      <button
           className="fab-create-track"
           onClick={openModal.create}
           disabled={isBusy}
           data-testid="create-track-button"
           title="Create new track"
-          data-loading={isBusy} 
+          data-loading={isBusy}
           aria-disabled={isBusy}
       >
           <span className="fab-icon" aria-hidden="true">+</span>
           <span className="fab-text">Add Track</span>
       </button>
-
-      {tracksError && !isLoadingTracks && ( 
+      {tracksError && !isLoadingTracks && (
         <div className="error-message page-error" data-testid="page-error-message">
           {tracksError}
         </div>
       )}
-
       <TrackList
         tracks={tracks}
         isLoading={isLoadingTracks}
@@ -295,13 +283,12 @@ const TracksPage: React.FC = () => {
         selectedTrackIds={selectedTrackIds}
         onEdit={openModal.edit}
         onDelete={openModal.delete} 
-        onUpload={openModal.upload} 
+        onUpload={openModal.upload}
         onDeleteFile={openModal.deleteFile} 
         onGenreRemove={handleTrackGenreRemove}
         isBulkDeleting={mutationLoading.isBulkDeleting}
         onBulkDelete={handleBulkDeleteOptimistic}
       />
-
       {!isLoadingTracks && meta && meta.totalPages > 1 && (
         <Pagination
           currentPage={meta.page}
@@ -309,12 +296,10 @@ const TracksPage: React.FC = () => {
           onPageChange={filterProps.handlePageChange}
         />
       )}
-
-      {/* --- Modals --- */}
       <CreateTrackModal
         isOpen={modalState.createOpen}
         onClose={closeAllModals}
-        onSubmit={handleCreate} 
+        onSubmit={(data) => handleCreate(data)}
         availableGenres={availableGenres}
         isLoading={mutationLoading.isSubmitting}
       />
@@ -322,7 +307,7 @@ const TracksPage: React.FC = () => {
         isOpen={!!modalState.editingTrackId}
         onClose={closeAllModals}
         trackToEdit={findTrackById(modalState.editingTrackId)}
-        onSubmit={handleUpdateOptimistic} 
+        onSubmit={(id, data) => handleUpdateOptimistic(id, data)} 
         availableGenres={availableGenres}
         isLoading={mutationLoading.isSubmitting}
       />
@@ -330,21 +315,21 @@ const TracksPage: React.FC = () => {
         isOpen={!!modalState.uploadingTrackId}
         onClose={closeAllModals}
         trackToUpload={findTrackById(modalState.uploadingTrackId)}
-        onUpload={handleUpload} 
+        onUpload={(trackId, file) => { void handleUpload(trackId, file); }}
         isLoading={mutationLoading.isUploading}
       />
       <DeleteConfirmationDialog
         isOpen={!!modalState.deletingTrackId}
         onClose={closeAllModals}
         trackToDelete={findTrackById(modalState.deletingTrackId)}
-        onConfirm={handleDeleteOptimistic}
+        onConfirm={(trackId) => { void handleDeleteOptimistic(trackId); }}
         isLoading={mutationLoading.isDeleting}
       />
       <DeleteFileConfirmationDialog
         isOpen={!!modalState.deletingFileTrackId}
         onClose={closeAllModals}
         trackToDeleteFile={findTrackById(modalState.deletingFileTrackId)}
-        onConfirm={handleDeleteFileOptimistic} 
+        onConfirm={(trackId) => { void handleDeleteFileOptimistic(trackId); }}
         isLoading={mutationLoading.isDeletingFile}
       />
     </div>

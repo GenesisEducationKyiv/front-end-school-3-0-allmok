@@ -17,7 +17,7 @@ export const useTracks = (filters: TrackFiltersState) => {
         setIsLoading(true);
         setError(null); 
         try {
-            const response = await getTracks(filters as GetTracksParams) as GetTracksResponse;
+            const response = await getTracks(filters as GetTracksParams);
             setTracks(response.tracks); 
             setMeta(response.meta);
 

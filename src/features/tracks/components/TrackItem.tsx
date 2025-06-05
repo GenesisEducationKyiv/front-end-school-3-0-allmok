@@ -32,11 +32,9 @@ const TrackItem: React.FC<TrackItemProps> = ({
 }) => {
   const { playingTrackId, isPlaying, requestPlay, requestPause, notifyTrackFinished } = useAudioPlayer();
 
-  // Refs
   const waveformContainerRef = useRef<HTMLDivElement>(null); 
   const wavesurferRef = useRef<WaveSurfer | null>(null); 
 
-  //Local component state
   const [isWsReady, setIsWsReady] = useState(false);
   const [error, setError] = useState<string | null>(null); 
 
@@ -165,7 +163,6 @@ const TrackItem: React.FC<TrackItemProps> = ({
     }
   }, [track.id, fullAudioUrl, isThisTrackPlayingGlobally, requestPlay, requestPause, isWsReady, error]);
 
-  // Render 
   return (
     <div
       className={`track-item ${isSelected ? 'selected' : ''} ${isThisTrackPlayingGlobally ? 'active' : ''}`}
@@ -233,7 +230,7 @@ const TrackItem: React.FC<TrackItemProps> = ({
           )}
         </div>
 
-        {/*  Waveform  */}
+  
         {track.audioFile && (
           <div
               ref={waveformContainerRef}

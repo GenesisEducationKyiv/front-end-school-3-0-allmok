@@ -5,7 +5,7 @@ interface ModalProps {
   isOpen: boolean; 
   onClose: () => void;
   children: ReactNode; 
-  'data-testid'?: string; // for test
+  'data-testid'?: string; 
 }
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, 'data-testid': dataTestId }) => {

@@ -77,7 +77,6 @@ export const TrackList: React.FC<TrackListProps> = ({
             </div>
 
 
-            {/* Track list items */}
             <div className="track-list">
             {isLoading
                    ? <LoadingIndicator data-testid="loading-tracks"/>

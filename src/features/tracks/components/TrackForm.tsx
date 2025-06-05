@@ -1,5 +1,4 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
- //import { z } from 'zod';
 import GenreTag from '../../../components/GenreTag/GenreTag';
 import '../../../css/TrackForm.css';
 import { NewTrackDataSchema, NewTrackData } from '../../../types/track';
@@ -132,7 +131,6 @@ const TrackForm: React.FC<TrackFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} data-testid="track-form" noValidate>
-      {/* (Title) */}
       <div className="form-group">
         <label htmlFor="title">Track name *</label>
         <input
@@ -143,7 +141,6 @@ const TrackForm: React.FC<TrackFormProps> = ({
         {errors.title && <p id="error-title" className="error-message" data-testid="error-title">{errors.title}</p>}
       </div>
 
-      {/*(Artist) */}
       <div className="form-group">
         <label htmlFor="artist">Artist *</label>
         <input
@@ -154,7 +151,6 @@ const TrackForm: React.FC<TrackFormProps> = ({
         {errors.artist && <p id="error-artist" className="error-message" data-testid="error-artist">{errors.artist}</p>}
       </div>
 
-      {/*(Album) */}
       <div className="form-group">
         <label htmlFor="album">Album</label>
         <input
@@ -163,7 +159,6 @@ const TrackForm: React.FC<TrackFormProps> = ({
         />
       </div>
 
-      {/*(Cover Image) */}
       <div className="form-group">
         <label htmlFor="coverImage">Link to the cover (URL)</label>
         <input
@@ -175,7 +170,6 @@ const TrackForm: React.FC<TrackFormProps> = ({
          {errors.coverImage && <p id="error-cover-image" className="error-message" data-testid="error-cover-image">{errors.coverImage}</p>}
       </div>
 
-      {/* genres */}
       <div className="form-group">
         <label>Genres *</label>
         <div className="selected-genres">
@@ -201,7 +195,6 @@ const TrackForm: React.FC<TrackFormProps> = ({
         </div>
       </div>
 
-      {/* form */}
       <div className="form-actions">
         <button
           type="submit"

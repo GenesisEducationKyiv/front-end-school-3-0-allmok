@@ -28,13 +28,12 @@ export const TrackFilters: React.FC<TrackFiltersProps> = ({
     return (
         <div>
 
-            {/* Filter Controls Container */}
             <div
                 className={`list-controls ${isVisible ? 'visible' : 'hidden'}`}
                 data-testid="list-controls"
                 aria-hidden={!isVisible}
             >
-                {/* Search */}
+
                 <div className="control-group search-group">
                     <label htmlFor="search-input">Search:</label>
                     <input
@@ -48,7 +47,7 @@ export const TrackFilters: React.FC<TrackFiltersProps> = ({
                     />
                 </div>
 
-                {/* Sorting */}
+
                 <div className="control-group">
                     <label htmlFor="sort-select">Sort by:</label>
                     <div className="sort-controls">
@@ -77,7 +76,7 @@ export const TrackFilters: React.FC<TrackFiltersProps> = ({
                     </div>
                 </div>
 
-                {/* Genre filter */}
+
                 <div className="control-group">
                     <label htmlFor="filter-genre">Genre:</label>
                     <select
@@ -94,7 +93,7 @@ export const TrackFilters: React.FC<TrackFiltersProps> = ({
                     </select>
                 </div>
 
-                {/* Artist filter */}
+
                  <div className="control-group">
                     <label htmlFor="filter-artist">Artist:</label>
                     <select
@@ -111,7 +110,7 @@ export const TrackFilters: React.FC<TrackFiltersProps> = ({
                     </select>
                 </div>
 
-                {/* Reset filters button */}
+
                 <div className="control-group reset-group">
                     <button
                         onClick={handleResetFilters}

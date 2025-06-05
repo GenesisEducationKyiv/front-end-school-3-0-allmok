@@ -1,7 +1,5 @@
 import { z } from 'zod';
 
-// ---Zod ---
-
 export const MetaSchema = z.object({
   total: z.number().int().min(0),
   page: z.number().int().positive(),
@@ -11,7 +9,6 @@ export const MetaSchema = z.object({
 
 
 export const TrackSchema = z.object({
-  // id: z.string().uuid(),
   id: z.string(),  
 
   title: z.string().min(1, { message: "Track name is required" }),

@@ -73,29 +73,7 @@ npm test
 ```bash
 npm run test:ui
 ```
-## 📁 Folder Structure
-```
-src/
-├── __tests__/ #
-├── api/ # Axios instance, API service functions (tracks, genres)
-├── assets/ # Static assets (e.g., default cover image)
-├── components/ # Reusable UI components (Modal, Pagination, GenreTag, etc.)
-├── contexts/ # React Context providers (e.g., AudioPlayerContext)
-├── css/ # component-specific CSS files
-├── features/ # Feature-specific modules (e.g., tracks)
-│ └── tracks/
-│ ├── components/ # Components specific to the tracks feature
-│ │ └── modals/ # Modals specific to track operations
-│ └── hooks/ # Custom hooks for track-related logic
-├── hooks/ # General reusable custom hooks (e.g., useDebounce)
-├── pages/ # Page-level components (e.g., TracksPage)
-├── types/ # TypeScript type definitions (e.g., Track, Meta)
-├── App.css # Main App component styles
-├── App.tsx # Root application component
-├── index.css # Global styles and CSS variables
-├── main.tsx # Application entry point, renders Root component
-└── setupTests.ts # Vitest setup
-```
+
 ## 🎉 Features Implemented
 
 *   **Bulk Delete:** Functionality to select and delete multiple tracks simultaneously.

@@ -3,9 +3,9 @@ import '../../css/Modal.css';
 
 interface ModalProps {
   isOpen: boolean; 
-  onClose: () => void; // close the window
+  onClose: () => void;
   children: ReactNode; 
-  'data-testid'?: string; // for test
+  'data-testid'?: string; 
 }
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, 'data-testid': dataTestId }) => {
@@ -49,7 +49,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, 'data-testid':
     >
       <div className="modal-content" data-testid="modal-content">
 
-        <button className="modal-close-button" onClick={onClose} aria-label="Закрити вікно">
+        <button className="modal-close-button" onClick={onClose} aria-label="close">
           × 
         </button>
         {children}

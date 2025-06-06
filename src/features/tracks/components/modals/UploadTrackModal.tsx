@@ -113,7 +113,7 @@ export const TrackUploadModal: React.FC<TrackUploadModalProps> = ({
                 Track: <strong>{trackToUpload.title} - {trackToUpload.artist}</strong>
             </p>
 
-            {/* Form */}
+
             <form onSubmit={handleSubmit} noValidate>
                 <div className="form-group">
                     <label htmlFor="audioFile">Select audio file:</label>
@@ -146,7 +146,7 @@ export const TrackUploadModal: React.FC<TrackUploadModalProps> = ({
                     </div>
                 )}
 
-                {/* Action Buttons */}
+
                 <div className="form-actions">
                     <button
                         type="submit"

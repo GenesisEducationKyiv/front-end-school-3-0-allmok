@@ -1,12 +1,12 @@
 import React from 'react';
-import ConfirmDialog from './ConfirmDialog'; 
+import ConfirmDialog from './ConfirmDialog';
 import { Track } from '../../types/track';
 
 interface DeleteFileConfirmationDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (trackId: string) => Promise<void> | void;
-  trackToDeleteFile: Track | null; 
+  trackToDeleteFile: Track | null;
   isLoading: boolean;
 }
 
@@ -17,13 +17,17 @@ export const DeleteFileConfirmationDialog: React.FC<DeleteFileConfirmationDialog
   trackToDeleteFile,
   isLoading
 }) => {
-
-
-  const handleConfirm = () => {
+  const handleConfirmLogic = async () => { 
     if (trackToDeleteFile) {
-      onConfirm(trackToDeleteFile.id);
+      try {
+        const result = onConfirm(trackToDeleteFile.id);
+        if (result instanceof Promise) {
+          await result;
+        }
+      } catch (error) {
+        console.error("Error during onConfirm in DeleteFileConfirmationDialog:", error);
+      }
     } else {
-    
       console.error("Attempted to confirm file deletion without a track.");
       onClose(); 
     }
@@ -33,18 +37,18 @@ export const DeleteFileConfirmationDialog: React.FC<DeleteFileConfirmationDialog
     return null;
   }
 
- 
   if (!trackToDeleteFile.audioFile) {
-       console.warn(`Attempted to open delete file dialog for track "${trackToDeleteFile.title}" which has no audio file.`);
-       return null; 
+    console.warn(`Attempted to open delete file dialog for track "${trackToDeleteFile.title}" which has no audio file.`);
+    return null;
   }
-
 
   return (
     <ConfirmDialog
       isOpen={isOpen}
       onClose={onClose}
-      onConfirm={handleConfirm} 
+      onConfirm={() => {
+        void handleConfirmLogic();
+      }}
       title="Confirm File Deletion"
       message={
         <>

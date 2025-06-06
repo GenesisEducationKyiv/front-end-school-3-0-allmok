@@ -15,7 +15,6 @@ const Pagination: React.FC<PaginationProps> = ({
   'data-testid': dataTestId = "pagination", 
 }) => {
 
-  // Don't render pagination if there is only one page
   if (totalPages <= 1) {
     return null;
   }

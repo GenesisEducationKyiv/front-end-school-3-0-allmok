@@ -1,38 +1,40 @@
 import React from 'react';
-import Modal from '../../../../components/modal/Modal'; 
-import TrackForm, { TrackFormData } from '../TrackForm'; 
-import { Track, UpdateTrackData } from '../../../../types/track'; 
+import Modal from '../../../../components/modal/Modal';
+import TrackForm, { TrackFormData } from '../TrackForm';
+import { Track, UpdateTrackData } from '../../../../types/track';
 
 interface EditTrackModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onSubmit: (id: string, data: UpdateTrackData) => Promise<any>; 
-    trackToEdit: Track | null;
-    availableGenres: string[];
-    isLoading: boolean;
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (id: string, data: UpdateTrackData) => Promise<void>;
+  trackToEdit: Track | null;
+  availableGenres: string[];
+  isLoading: boolean;
 }
 
 export const EditTrackModal: React.FC<EditTrackModalProps> = ({
-    isOpen, onClose, onSubmit, trackToEdit, availableGenres, isLoading
+  isOpen, onClose, onSubmit, trackToEdit, availableGenres, isLoading
 }) => {
-    const handleSubmit = (formData: TrackFormData) => {
-        if (trackToEdit) {
-            onSubmit(trackToEdit.id, formData as UpdateTrackData);
-        }
-    };
+  const handleSubmit = (formData: TrackFormData) => {
+    if (trackToEdit) {
+      onSubmit(trackToEdit.id, formData as UpdateTrackData).catch((error) => {
+        console.error('Error updating track:', error);
+      });
+    }
+  };
 
-    if (!trackToEdit) return null; 
+  if (!trackToEdit) return null;
 
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} data-testid="edit-track-modal">
-            <h2 style={{ marginBottom: '1.5rem' }}>Edit track: {trackToEdit.title}</h2>
-            <TrackForm
-                onSubmit={handleSubmit}
-                onCancel={onClose}
-                availableGenres={availableGenres}
-                isLoading={isLoading}
-                initialData={trackToEdit} 
-            />
-        </Modal>
-    );
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} data-testid="edit-track-modal">
+      <h2 style={{ marginBottom: '1.5rem' }}>Edit track: {trackToEdit.title}</h2>
+      <TrackForm
+        onSubmit={handleSubmit}
+        onCancel={onClose}
+        availableGenres={availableGenres}
+        isLoading={isLoading}
+        initialData={trackToEdit}
+      />
+    </Modal>
+  );
 };

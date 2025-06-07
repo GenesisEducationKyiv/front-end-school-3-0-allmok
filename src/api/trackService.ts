@@ -1,5 +1,7 @@
 import axiosInstance from './axiosInstance';
 import { safeApiCall } from './apiHandler';
+import { O, D, S } from '@mobily/ts-belt';
+
 import {
   Track,
   GetTracksResponse,
@@ -27,13 +29,15 @@ export interface GetTracksParams extends Record<string, unknown> {
 }
 
 const cleanParams = <T extends Record<string, unknown>>(params: T): Partial<T> => {
-    const cleaned: Partial<T> = {};
-    (Object.entries(params) as [keyof T, T[keyof T]][]).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-            cleaned[key] = value;
-        }
-    });
-    return cleaned;
+  return D.filter(params, (value: unknown): boolean => {
+    if (O.isNone(value)) {
+      return false;
+    }
+    if (typeof value === 'string' && S.isEmpty(value)) {
+      return false;
+    }
+    return true;
+  });
 };
 
 export const getTracks = (params: GetTracksParams = {}): Promise<Result<GetTracksResponse, AppError>> => {
@@ -49,6 +53,7 @@ export const getTracks = (params: GetTracksParams = {}): Promise<Result<GetTrack
     }
   );
 };
+
 
 export const createTrack = (trackData: NewTrackData): Promise<Result<Track, AppError>> => {
   return safeApiCall(

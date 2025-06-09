@@ -20,38 +20,36 @@ interface InitialState extends Omit<TrackFiltersState, 'limit' | 'search' | 'gen
     artist: string;
 }
 
+const getParamValue = (params: URLSearchParams, key: string) => 
+    pipe(params.get(key), O.fromNullable);
+
 const getInitialStateFromURL = (initialSort: string, initialOrder: 'asc' | 'desc'): InitialState => {
     const params = new URLSearchParams(window.location.search);
 
     const page = pipe(
-        params.get('page'),      
-        O.fromNullable,   
-        O.flatMap(value => {
-            const parsed = Number(value);
-            return isNaN(parsed) ? O.None : O.Some(parsed);
-        }),    
-        O.map(Math.round),          
-        O.filter(n => n > 0),      
-        O.getWithDefault<number>(1) 
+        getParamValue(params, 'page'),
+        O.map(Number),
+        O.flatMap(parsed => isNaN(parsed) ? O.None : O.Some(parsed)),
+        O.map(Math.round),
+        O.filter(n => n > 0),
+        O.getWithDefault<number>(1)
     );
 
     const sort = pipe(
-        params.get('sort'),
-        O.fromNullable,
+        getParamValue(params, 'sort'),
         O.getWithDefault(initialSort)
     );
 
     const order = pipe(
-        params.get('order'),
-        O.fromNullable,
+        getParamValue(params, 'order'),
         O.map(S.toLowerCase),
         O.flatMap(o => (o === 'asc' || o === 'desc' ? O.Some(o) : O.None)),
         O.getWithDefault(initialOrder)
     );
 
-    const genre = pipe(params.get('genre'), O.fromNullable, O.getWithDefault<string>(''));
-    const artist = pipe(params.get('artist'), O.fromNullable, O.getWithDefault<string>(''));
-    const search = pipe(params.get('search'), O.fromNullable, O.getWithDefault<string>(''));
+    const genre = pipe(getParamValue(params, 'genre'), O.getWithDefault<string>(''));
+    const artist = pipe(getParamValue(params, 'artist'), O.getWithDefault<string>(''));
+    const search = pipe(getParamValue(params, 'search'), O.getWithDefault<string>(''));
 
     return { page, sort, order, genre, artist, search };
 };

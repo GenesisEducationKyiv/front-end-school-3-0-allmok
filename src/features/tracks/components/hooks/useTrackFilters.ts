@@ -1,6 +1,7 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useReducer } from 'react';
 import useDebounce from '../../../../hooks/useDebounce';
 import { pipe, O, S } from '@mobily/ts-belt';
+import { useTrackFiltersFromURL } from './useTrackFiltersFromURL';
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -14,101 +15,128 @@ export interface TrackFiltersState {
     artist?: string;
 }
 
-interface InitialState extends Omit<TrackFiltersState, 'limit' | 'search' | 'genre' | 'artist'> {
-    search: string;
+interface FiltersReducerState {
+    page: number;
+    sort: string;
+    order: 'asc' | 'desc';
     genre: string;
     artist: string;
+    search: string;
 }
 
-const getParamValue = (params: URLSearchParams, key: string) => 
-    pipe(params.get(key), O.fromNullable);
+type FiltersAction = 
+    | { type: 'SET_PAGE'; payload: number }
+    | { type: 'SET_SORT'; payload: string }
+    | { type: 'SET_ORDER'; payload: 'asc' | 'desc' }
+    | { type: 'SET_GENRE'; payload: string }
+    | { type: 'SET_ARTIST'; payload: string }
+    | { type: 'SET_SEARCH'; payload: string }
+    | { type: 'RESET_FILTERS'; payload: { sort: string; order: 'asc' | 'desc' } };
 
-const getInitialStateFromURL = (initialSort: string, initialOrder: 'asc' | 'desc'): InitialState => {
-    const params = new URLSearchParams(window.location.search);
-
-    const page = pipe(
-        getParamValue(params, 'page'),
-        O.map(Number),
-        O.flatMap(parsed => isNaN(parsed) ? O.None : O.Some(parsed)),
-        O.map(Math.round),
-        O.filter(n => n > 0),
-        O.getWithDefault<number>(1)
+type OptionalFilterKey = 'genre' | 'artist' | 'search';
+const createOptionalFilter = (key: OptionalFilterKey, value: string) =>
+    pipe(
+        value,
+        O.fromPredicate(S.isNotEmpty),
+        O.map(v => ({ [key]: v })),
+        O.getWithDefault({})
     );
 
-    const sort = pipe(
-        getParamValue(params, 'sort'),
-        O.getWithDefault(initialSort)
-    );
-
-    const order = pipe(
-        getParamValue(params, 'order'),
-        O.map(S.toLowerCase),
-        O.flatMap(o => (o === 'asc' || o === 'desc' ? O.Some(o) : O.None)),
-        O.getWithDefault(initialOrder)
-    );
-
-    const genre = pipe(getParamValue(params, 'genre'), O.getWithDefault<string>(''));
-    const artist = pipe(getParamValue(params, 'artist'), O.getWithDefault<string>(''));
-    const search = pipe(getParamValue(params, 'search'), O.getWithDefault<string>(''));
-
-    return { page, sort, order, genre, artist, search };
+const filtersReducer = (state: FiltersReducerState, action: FiltersAction): FiltersReducerState => {
+    switch (action.type) {
+        case 'SET_PAGE':
+            return { ...state, page: action.payload };
+        case 'SET_SORT':
+            return { ...state, sort: action.payload, page: 1 };
+        case 'SET_ORDER':
+            return { ...state, order: action.payload, page: 1 };
+        case 'SET_GENRE':
+            return { ...state, genre: action.payload, page: 1 };
+        case 'SET_ARTIST':
+            return { ...state, artist: action.payload, page: 1 };
+        case 'SET_SEARCH':
+            return { ...state, search: action.payload, page: 1 };
+        case 'RESET_FILTERS':
+            return {
+                ...state,
+                sort: action.payload.sort,
+                order: action.payload.order,
+                genre: '',
+                artist: '',
+                search: '',
+                page: 1
+            };
+        default:
+            return state;
+    }
 };
 
 export const useTrackFilters = (initialSort = 'createdAt', initialOrder: 'asc' | 'desc' = 'desc') => {
-    const initialState = useMemo(() => getInitialStateFromURL(initialSort, initialOrder), [initialSort, initialOrder]);
-
-    const [currentPage, setCurrentPage] = useState<number>(initialState.page);
+    const initialState = useTrackFiltersFromURL(initialSort, initialOrder);
+    const { page, sort, order, genre, artist, search } = initialState;
+    
+    const [state, dispatch] = useReducer(filtersReducer, {
+        page,
+        sort,
+        order,
+        genre,
+        artist,
+        search
+    });
+    
     const [limit] = useState<number>(DEFAULT_PAGE_SIZE);
-    const [sortBy, setSortBy] = useState<string>(initialState.sort);
-    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(initialState.order);
-    const [filterGenre, setFilterGenre] = useState<string>(initialState.genre);
-    const [filterArtist, setFilterArtist] = useState<string>(initialState.artist);
-    const [searchQuery, setSearchQuery] = useState<string>(initialState.search);
-    const debouncedSearch = useDebounce<string>(searchQuery, 500);
+    const debouncedSearch = useDebounce<string>(state.search, 500);
 
-    const handlePageChange = useCallback((page: number) => setCurrentPage(page), []);
-    const handleSortChange = useCallback((newSortBy: string) => { setSortBy(newSortBy); setCurrentPage(1); }, []);
-    const handleOrderChange = useCallback((newOrder: 'asc' | 'desc') => { setSortOrder(newOrder); setCurrentPage(1); }, []);
-    const handleGenreChange = useCallback((newGenre: string) => { setFilterGenre(newGenre); setCurrentPage(1); }, []);
-    const handleArtistChange = useCallback((newArtist: string) => { setFilterArtist(newArtist); setCurrentPage(1); }, []);
-    const handleSearchChange = useCallback((newQuery: string) => { setSearchQuery(newQuery); setCurrentPage(1); }, []);
+    const handlePageChange = useCallback((page: number) => {
+        dispatch({ type: 'SET_PAGE', payload: page });
+    }, []);
+
+    const handleSortChange = useCallback((newSortBy: string) => {
+        dispatch({ type: 'SET_SORT', payload: newSortBy });
+    }, []);
+
+    const handleOrderChange = useCallback((newOrder: 'asc' | 'desc') => {
+        dispatch({ type: 'SET_ORDER', payload: newOrder });
+    }, []);
+
+    const handleGenreChange = useCallback((newGenre: string) => {
+        dispatch({ type: 'SET_GENRE', payload: newGenre });
+    }, []);
+
+    const handleArtistChange = useCallback((newArtist: string) => {
+        dispatch({ type: 'SET_ARTIST', payload: newArtist });
+    }, []);
+
+    const handleSearchChange = useCallback((newQuery: string) => {
+        dispatch({ type: 'SET_SEARCH', payload: newQuery });
+    }, []);
+
     const handleResetFilters = useCallback(() => {
-        setSortBy(initialSort);
-        setSortOrder(initialOrder);
-        setFilterGenre('');
-        setFilterArtist('');
-        setSearchQuery('');
-        if (currentPage !== 1) {
-            setCurrentPage(1);
-        }
-    }, [currentPage, initialSort, initialOrder]);
+        dispatch({ 
+            type: 'RESET_FILTERS', 
+            payload: { sort: initialSort, order: initialOrder } 
+        });
+    }, [initialSort, initialOrder]);
 
     const filters = useMemo<TrackFiltersState>(() => {
-        type OptionalFilterKey = 'genre' | 'artist' | 'search';
-        const createOptionalFilter = (key: OptionalFilterKey, value: string) =>
-            pipe(
-                value,
-                O.fromPredicate(S.isNotEmpty),
-                O.map(v => ({ [key]: v })),
-                O.getWithDefault({})
-            );
-            return {
-                page: currentPage,
-                limit,
-                sort: sortBy,
-                order: sortOrder,
-                ...createOptionalFilter('genre', filterGenre),
-                ...createOptionalFilter('artist', filterArtist),
-                ...createOptionalFilter('search', debouncedSearch),
-            };
-        }, [currentPage, limit, sortBy, sortOrder, filterGenre, filterArtist, debouncedSearch]);
+        return {
+            page: state.page,
+            limit,
+            sort: state.sort,
+            order: state.order,
+            ...createOptionalFilter('genre', state.genre),
+            ...createOptionalFilter('artist', state.artist),
+            ...createOptionalFilter('search', debouncedSearch),
+        };
+    }, [state.page, limit, state.sort, state.order, state.genre, state.artist, debouncedSearch]);
 
     const filterProps = useMemo(() => ({
-        sortBy,
-        sortOrder,
-        filterGenre,
-        filterArtist,
-        searchQuery,
+        sortBy: state.sort,
+        sortOrder: state.order,
+        filterGenre: state.genre,
+        filterArtist: state.artist,
+        searchQuery: state.search,
+        currentPage: state.page,
         handleSortChange,
         handleOrderChange,
         handleGenreChange,
@@ -116,11 +144,20 @@ export const useTrackFilters = (initialSort = 'createdAt', initialOrder: 'asc' |
         handleSearchChange,
         handleResetFilters,
         handlePageChange,
-        currentPage
     }), [
-        sortBy, sortOrder, filterGenre, filterArtist, searchQuery,
-        handleSortChange, handleOrderChange, handleGenreChange, handleArtistChange,
-        handleSearchChange, handleResetFilters, handlePageChange, currentPage
+        state.sort, 
+        state.order, 
+        state.genre, 
+        state.artist, 
+        state.search,
+        state.page,
+        handleSortChange, 
+        handleOrderChange, 
+        handleGenreChange, 
+        handleArtistChange,
+        handleSearchChange, 
+        handleResetFilters, 
+        handlePageChange
     ]);
 
     return { filters, filterProps };

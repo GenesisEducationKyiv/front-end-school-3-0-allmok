@@ -16,6 +16,7 @@
     "lint:fix": "eslint . --ext .js,.mjs,.cjs,.ts,.tsx --fix"
   },
   "dependencies": {
+    "@mobily/ts-belt": "^3.13.1",
     "axios": "^1.8.4",
     "neverthrow": "^8.2.0",
     "react": "^19.0.0",

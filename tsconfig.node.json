@@ -14,6 +14,7 @@
     "vite.config.ts",
     "vitest.config.ts", 
     "eslint.config.js",
-    "src/setupTests.ts"
+    "playwright.config.ts", 
+    "playwright-ct.config.ts"
   ]
 }

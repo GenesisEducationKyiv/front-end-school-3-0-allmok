@@ -13,10 +13,13 @@
     "type-check": "tsc --noEmit",
     "preview": "vite preview",
     "lint": "eslint . --ext .js,.mjs,.cjs,.ts,.tsx --report-unused-disable-directives --max-warnings 0",
-    "lint:fix": "eslint . --ext .js,.mjs,.cjs,.ts,.tsx --fix"
+    "lint:fix": "eslint . --ext .js,.mjs,.cjs,.ts,.tsx --fix",
+    "test:e2e": "playwright test",
+    "test:ct": "playwright test -c playwright-ct.config.ts"
   },
   "dependencies": {
     "@mobily/ts-belt": "^3.13.1",
+    "@playwright/experimental-ct-react": "^1.53.0",
     "axios": "^1.8.4",
     "neverthrow": "^8.2.0",
     "react": "^19.0.0",
@@ -27,6 +30,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
+    "@playwright/test": "^1.53.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",

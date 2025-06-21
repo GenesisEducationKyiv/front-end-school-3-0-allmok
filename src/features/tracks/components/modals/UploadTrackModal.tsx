@@ -65,8 +65,6 @@ export const TrackUploadModal: React.FC<TrackUploadModalProps> = ({
 
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
-
-            // --- Validation ---
             if (!ALLOWED_AUDIO_TYPES.includes(file.type)) {
                 setError(`Invalid file type. Allowed types: ${ALLOWED_AUDIO_TYPES.join(', ')}`);
                 e.target.value = ''; 

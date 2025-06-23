@@ -83,7 +83,7 @@ export const TrackList: React.FC<TrackListProps> = ({
                    : tracks.map(track => (
                         <TrackItem
                             key={track.id}
-                            track={track}
+                            trackToUpload={track}
                             isSelected={selectedTrackIds.has(track.id)}
                             onSelectToggle={selectionProps.handleSelectToggle}
                             onEdit={onEdit}

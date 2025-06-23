@@ -1,85 +1,81 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 
-import { useTrackFilters } from '../features/tracks/components/hooks/useTrackFilters';
-import { useTracks } from '../features/tracks/components/hooks/useTracks';
-import { useBulkActions } from '../features/tracks/components/hooks/useBulkActions';
-import { useModalState } from '../features/tracks/components/hooks/useModalState';
-import { useTrackOperations } from '../features/tracks/components/hooks/useTrackOperations';
+import { useTracksQuery, useGenresQuery } from '../features/tracks/components/hooks/useTracksQuery';
+import { useTrackMutations } from '../features/tracks/components/hooks/useTrackMutations';
+import { useFilterStore } from '../stores/useFilterStore';
+import { useModalStore } from '../stores/useModalStore';
+import { useSelectionStore } from '../stores/useSelectionStore';
 
 import Pagination from '../components/Pagination/Pagination';
 import { TrackFilters } from '../features/tracks/components/TrackFilters';
 import { TrackList } from '../features/tracks/components/TrackList';
 import { TrackModals } from '../features/tracks/components/TrackModals';
+import LoadingIndicator from '../components/LoadingIndicator';
+import ErrorDisplay from '../features/tracks/components/ErrorDisplay'; 
 
 import { Track } from '../types/track';
 
 import '../css/TracksPage.css';
 
 const TracksPage: React.FC = () => {
-  const {
-    activeModal,
-    modalPayload,
-    openModal,
-    closeModal,
-  } = useModalState();
+  const { 
+    data: tracksData, 
+    isLoading, 
+    isError, 
+    error, 
+    isFetching,
+    refetch
+  } = useTracksQuery();
+  
+  const { data: availableGenres = [] } = useGenresQuery();
+  
+  const { 
+    createTrack, updateTrack, deleteTrack, bulkDelete, uploadFile, deleteFile, mutationState 
+  } = useTrackMutations();
 
-  const { filters, filterProps } = useTrackFilters();
-  const {
-    tracks,
-    setTracks,
-    meta,
-    isLoading: isLoadingTracks,
-    error: tracksError,
-    fetchTracks,
-    availableGenres,
-  } = useTracks(filters);
+  const setPage = useFilterStore((state) => state.setPage);
+  const { activeModal, payload, openModal, closeModal } = useModalStore();
+  const { selectedIds, toggleId, selectAll, clearSelection } = useSelectionStore();
+
+  const tracks = tracksData?.tracks ?? [];
+  const meta = tracksData?.meta;
 
   const uniqueArtists = useMemo(() => {
     return [...new Set(tracks.map(t => t.artist))].sort();
   }, [tracks]);
 
-  const { selectedTrackIds, selectionProps, clearSelection } = useBulkActions(
-    tracks.map(t => t.id)
-  );
+  const findTrackById = useCallback((id: string | null | undefined): Track | null => {
+    return id ? tracks.find(t => t.id === id) ?? null : null;
+  }, [tracks]);
 
-  const {
-    mutationLoading,
-    isAnyMutationLoading,
-    handleCreate,
-    handleUpdateOptimistic,
-    handleDeleteOptimistic,
-    handleTrackGenreRemove,
-    handleDeleteFileOptimistic,
-    handleUpload,
-    handleBulkDeleteOptimistic,
-  } = useTrackOperations({
-    tracks,
-    setTracks,
-    fetchTracks,
-    closeModal,
-    clearSelection,
-    filters,
-    onPageChange: filterProps.handlePageChange,
-  });
+  const handleGenreRemove = useCallback((trackId: string, genreToRemove: string) => {
+    const track = findTrackById(trackId);
+    if (!track) return;
 
-  const findTrackById = useCallback(
-    (id: string | null | undefined): Track | null => {
-      return id ? tracks.find(t => t.id === id) ?? null : null;
-    },
-    [tracks]
-  );
+    const updatedGenres = track.genres.filter(g => g !== genreToRemove);
+    updateTrack({ id: trackId, trackData: { genres: updatedGenres } });
+  }, [findTrackById, updateTrack]);
 
-  const isBusy = isLoadingTracks || isAnyMutationLoading;
+  const isBusy = isFetching || mutationState.isAnyLoading;
+
+  if (isLoading) {
+    return <LoadingIndicator />; 
+  }
+
+  if (isError && error) {
+    return <ErrorDisplay error={error} onRetry={() => refetch()} />; 
+  }
 
   return (
     <div className="tracks-page">
       <h1 data-testid="tracks-header">Tracks</h1>
+      
       <TrackFilters
-        {...filterProps}
         availableGenres={availableGenres}
         uniqueArtists={uniqueArtists}
         disabled={isBusy}
       />
+      
       <button
         className="fab-create-track"
         onClick={() => openModal('createTrack')}
@@ -93,57 +89,61 @@ const TracksPage: React.FC = () => {
         <span className="fab-text">Add Track</span>
       </button>
 
-      {tracksError && !isLoadingTracks && (
-        <div className="error-message page-error" data-testid="page-error-message">
-          <strong>Error loading tracks:</strong> {tracksError.message}
-          {(tracksError.type === 'ApiError' && tracksError.statusCode) &&
-            ` (Status: ${tracksError.statusCode})`}
-          <button
-            onClick={() => {
-              fetchTracks().catch(console.error);
-            }}
-            style={{ marginLeft: '10px', fontSize: '0.9em', padding: '0.3em 0.6em' }}
-          >
-            Retry
-          </button>
-        </div>
-      )}
-
       <TrackList
         tracks={tracks}
-        isLoading={isLoadingTracks}
-        selectionProps={selectionProps}
-        selectedTrackIds={selectedTrackIds}
+        isLoading={isFetching} 
+        selectedTrackIds={selectedIds}
+        selectionProps={{
+          handleSelectToggle: toggleId,
+          handleSelectAllClick: (e: React.ChangeEvent<HTMLInputElement>) => {
+            const allIds = tracks.map(t => t.id);
+            e.target.checked ? selectAll(allIds) : clearSelection();
+          },
+          isAllSelected: tracks.length > 0 && selectedIds.size === tracks.length,
+        }}
         onEdit={(id) => openModal('editTrack', { trackId: id })}
         onDelete={(id) => openModal('deleteTrack', { trackId: id })}
         onUpload={(id) => openModal('uploadTrackFile', { trackId: id })}
         onDeleteFile={(id) => openModal('deleteTrackFile', { trackId: id })}
-        onGenreRemove={handleTrackGenreRemove}
-        isBulkDeleting={mutationLoading.isBulkDeleting}
-        onBulkDelete={(ids) => handleBulkDeleteOptimistic(ids)}
+        onGenreRemove={handleGenreRemove}
+        onBulkDelete={() => bulkDelete(Array.from(selectedIds))}
+        isBulkDeleting={mutationState.isBulkDeleting}
       />
 
-      {!isLoadingTracks && meta && meta.totalPages > 1 && (
+      {meta && meta.totalPages > 1 && (
         <Pagination
           currentPage={meta.page}
           totalPages={meta.totalPages}
-          onPageChange={filterProps.handlePageChange}
+          onPageChange={setPage}
         />
       )}
-
-      <TrackModals
-        activeModal={activeModal}
-        modalPayload={modalPayload}
-        closeModal={closeModal}
-        findTrackById={findTrackById}
-        availableGenres={availableGenres}
-        mutationLoading={mutationLoading}
-        onCreate={handleCreate}
-        onUpdate={handleUpdateOptimistic}
-        onDelete={handleDeleteOptimistic}
-        onUploadFile={handleUpload}
-        onDeleteFile={handleDeleteFileOptimistic}
-      />
+<TrackModals
+  activeModal={activeModal}
+  modalPayload={payload}
+  closeModal={closeModal}
+  findTrackById={findTrackById}
+  availableGenres={availableGenres}
+  mutationLoading={{ 
+    isCreating: mutationState.isCreating,
+    isUpdating: mutationState.isUpdating,
+    isDeleting: mutationState.isDeleting,
+    isUploading: mutationState.isUploading,
+    isDeletingFile: mutationState.isDeletingFile, 
+    isBulkDeleting: mutationState.isBulkDeleting,
+    isAnyLoading: mutationState.isAnyLoading,
+  }}
+  onCreate={async (data) => {
+    await createTrack(data);
+  }}
+  onUpdate={async (id, data) => updateTrack({ id, trackData: data })}
+  onDelete={async (trackId: string) => {
+    await deleteTrack(trackId);
+  }}
+  onUploadFile={async (id, file) => uploadFile({ id, file })}
+  onDeleteFile={async (trackId: string) => {
+    await deleteFile(trackId);
+  }}
+/>
     </div>
   );
 };

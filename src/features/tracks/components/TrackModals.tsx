@@ -64,7 +64,7 @@ export const TrackModals: React.FC<TrackModalsProps> = ({
       isOpen={activeModal === 'uploadTrackFile'}
       onClose={closeModal}
       trackToUpload={trackForModal} 
-      onUpload={(id: string, file: File) => { 
+      onUpload={(_id: string, file: File) => { 
         if (trackIdForModal) {
           onUploadFile(trackIdForModal, file); 
         }

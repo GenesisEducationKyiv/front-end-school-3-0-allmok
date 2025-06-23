@@ -1,6 +1,4 @@
 import axiosInstance from './axiosInstance';
-import { safeApiCall } from './apiHandler';
-import { parseResponse } from '../utils/apiUtils';
 import { cleanParams } from '../utils/cleanParams';
 
 import {
@@ -17,8 +15,6 @@ import {
   GenresSchema,
 } from '../types/track'; 
 
-import { Result } from 'neverthrow'; 
-import { AppError } from '../types/errors'; 
 
 export interface GetTracksParams extends Record<string, unknown> {
   page?: number;

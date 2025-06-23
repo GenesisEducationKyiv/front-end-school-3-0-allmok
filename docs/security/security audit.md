@@ -62,6 +62,7 @@ found 0 vulnerabilities
    - Використання TypeScript для type safety
    - Валідація даних за допомогою Zod
    - Функціональний підхід з neverthrow та ts-belt
+   
 
 ---
 

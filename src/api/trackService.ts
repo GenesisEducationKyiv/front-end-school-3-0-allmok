@@ -1,5 +1,6 @@
 import axiosInstance from './axiosInstance';
 import { cleanParams } from '../utils/cleanParams';
+import { safeApiCall } from './apiHandler';
 
 import {
   Track,
@@ -14,6 +15,9 @@ import {
   UpdateTrackDataSchema,
   GenresSchema,
 } from '../types/track'; 
+import { Result } from 'neverthrow';
+import { AppError } from '../types/errors';
+import { parseResponse } from '../utils/apiUtils';
 
 
 export interface GetTracksParams extends Record<string, unknown> {
@@ -73,4 +77,30 @@ export const deleteTrackFile = async (id: string): Promise<Track> => {
 export const deleteMultipleTracks = async (ids: string[]): Promise<BulkDeleteResponse> => {
   const response = await axiosInstance.post('/tracks/delete', { ids });
   return BulkDeleteResponseSchema.parse(response.data);
+};
+
+export const getTracksSafe = (params: GetTracksParams = {}): Promise<Result<GetTracksResponse, AppError>> => {
+  return safeApiCall(
+    async () => {
+      const parsed = await parseResponse(
+        axiosInstance.get('/tracks', { params: cleanParams(params) }),
+        TracksApiResponseSchema
+      );
+      return { tracks: parsed.data, meta: parsed.meta };
+    },
+    {
+      validation: "Invalid track list format received.",
+      unknown: "Could not download tracks."
+    }
+  );
+};
+
+export const getGenresSafe = (): Promise<Result<string[], AppError>> => {
+  return safeApiCall(
+    () => parseResponse(axiosInstance.get<unknown>('/genres'), GenresSchema),
+    {
+      validation: "Invalid genres format received.",
+      unknown: "Could not download genres."
+    }
+  );
 };

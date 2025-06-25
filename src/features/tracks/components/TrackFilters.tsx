@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useFilterStore } from '../../../stores/useFilterStore';
 
 interface TrackFiltersProps {
@@ -16,17 +16,16 @@ export const TrackFilters: React.FC<TrackFiltersProps> = ({
         sort, order, genre, artist, search,
         setSort, setOrder, setGenre, setArtist, setSearch, resetFilters
     } = useFilterStore();
-    const [isVisible] = useState(true);
 
     const handleReset = () => {
-        resetFilters({ sort: 'createdAt', order: 'desc' });
+        resetFilters();
     };
     return (
         <div>
             <div
-                className={`list-controls ${isVisible ? 'visible' : 'hidden'}`}
+                className="list-controls"
                 data-testid="list-controls"
-                aria-hidden={!isVisible}
+                aria-hidden={false} 
             >
                 <div className="control-group search-group">
                     <label htmlFor="search-input">Search:</label>

@@ -33,7 +33,7 @@ const TracksPage: React.FC = () => {
     createTrack, updateTrack, deleteTrack, bulkDelete, uploadFile, deleteFile, mutationState 
   } = useTrackMutations();
 
-  const setPage = useFilterStore((state) => state.setPage);
+  const { setPage, page } = useFilterStore(); 
   const { activeModal, payload, openModal, closeModal } = useModalStore();
   const { selectedIds, toggleId, selectAll, clearSelection } = useSelectionStore();
 
@@ -112,9 +112,9 @@ const TracksPage: React.FC = () => {
 
       {meta && meta.totalPages > 1 && (
         <Pagination
-          currentPage={meta.page}
-          totalPages={meta.totalPages}
-          onPageChange={setPage}
+        currentPage={page}
+        totalPages={meta.totalPages}
+        onPageChange={setPage}
         />
       )}
 <TrackModals

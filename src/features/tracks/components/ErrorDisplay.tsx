@@ -1,28 +1,48 @@
 import React from 'react';
-import './ErrorDisplay.css'; 
+import { AppError } from '../../../types/errors'; 
 
 interface ErrorDisplayProps {
-  error: Error | null;
-  context?: string;
-  onRetry?: () => void; 
+  error: AppError | null;
+  onRetry?: () => void;
 }
 
-const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ error, context, onRetry }) => {
+const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ error, onRetry }) => {
   if (!error) {
     return null;
   }
 
-  const errorMessage = error.message || 'An unknown error occurred.';
+  const renderErrorDetails = () => {
+    switch (error.type) {
+      case 'ApiError':
+        return (
+          <>
+            <p>Status Code: {error.statusCode}</p>
+            {error.originalError && <pre>{JSON.stringify(error.originalError, null, 2)}</pre>}
+          </>
+        );
+      case 'ValidationError':
+        return <p>Please check the data you provided.</p>;
+      case 'NotFoundError':
+        return <p>Resource: {error.resourceName} (ID: {error.resourceId}) was not found.</p>;
+      case 'UnknownError':
+        return <p>An unexpected error occurred. Please try again later.</p>;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="error-display" role="alert">
-      <h4 className="error-title">
-        {context ? `Error ${context}` : 'An Error Occurred'}
-      </h4>
-      <p className="error-message">{errorMessage}</p>
+      <h2>Something Went Wrong</h2>
+      <p className="error-message">{error.message}</p>
+      
+      <div className="error-details">
+        {renderErrorDetails()}
+      </div>
+
       {onRetry && (
-        <button className="error-retry-button" onClick={onRetry}>
-          Retry
+        <button onClick={onRetry} className="retry-button">
+          Try Again
         </button>
       )}
     </div>

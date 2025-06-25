@@ -1,7 +1,16 @@
-import { useQuery } from '@tanstack/react-query';
-import { getTracks, getGenres } from '../../../../api/trackService';
-import { useApiFilters } from '../../../../stores/useFilterStore';
-import { GetTracksResponse } from '../../../../types/track'; 
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { getTracksSafe, getGenresSafe } from '../../../../api/trackService';
+import { GetTracksResponse } from '../../../../types/track';
+import { useApiParams } from '../../../../stores/useFilterStore';
+import { AppError } from '../../../../types/errors';
+
+const queryFnWrapper = async (queryFn: () => Promise<any>) => {
+  const result = await queryFn();
+  if (result.isErr()) {
+    throw result.error;
+  }
+  return result.value;
+};
 
 export const trackKeys = {
   all: ['tracks'] as const,
@@ -11,23 +20,25 @@ export const trackKeys = {
   detail: (id: string) => [...trackKeys.details(), id] as const,
 };
 
+export const useTracksQuery = () => {
+  const apiParams = useApiParams();
+
+  return useQuery<GetTracksResponse, AppError>({
+    queryKey: trackKeys.list(apiParams),
+    queryFn: () => queryFnWrapper(() => getTracksSafe(apiParams)),
+    placeholderData: keepPreviousData,
+  });
+};
+
 export const genreKeys = {
     all: ['genres'] as const,
 };
 
-export const useTracksQuery = () => {
-  const filters = useApiFilters();
-  
-  return useQuery<GetTracksResponse, Error>({ 
-    queryKey: trackKeys.list(filters),
-    queryFn: () => getTracks(filters),
-  });
-};
 
 export const useGenresQuery = () => {
-    return useQuery<string[], Error>({
-        queryKey: genreKeys.all,
-        queryFn: getGenres,
-        staleTime: 1000 * 60 * 5, 
-    });
+  return useQuery<string[], AppError>({
+      queryKey: ['genres'],
+      queryFn: () => queryFnWrapper(getGenresSafe),
+      staleTime: 1000 * 60 * 15,
+  });
 };

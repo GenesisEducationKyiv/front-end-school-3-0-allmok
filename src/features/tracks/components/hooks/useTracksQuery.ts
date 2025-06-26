@@ -1,7 +1,7 @@
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { getTracksSafe, getGenresSafe } from '../../../../api/trackService';
 import { GetTracksResponse } from '../../../../types/track';
-import { useApiParams } from '../../../../stores/useFilterStore';
+import { useApiParams } from './useFilters';
 import { AppError } from '../../../../types/errors';
 
 const queryFnWrapper = async (queryFn: () => Promise<any>) => {

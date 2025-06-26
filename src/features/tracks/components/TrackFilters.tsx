@@ -1,5 +1,5 @@
 import React from 'react';
-import { useFilterStore } from '../../../stores/useFilterStore';
+import { useFilterStore } from './hooks/useFilters';
 
 interface TrackFiltersProps {
     availableGenres: string[];

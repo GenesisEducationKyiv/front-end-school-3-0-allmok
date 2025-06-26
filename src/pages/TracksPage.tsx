@@ -5,7 +5,7 @@ import {
   useGenresQuery,
 } from "../features/tracks/components/hooks/useTracksQuery";
 import { useTrackMutations } from "../features/tracks/components/hooks/useTrackMutations";
-import { useFilterStore } from "../stores/useFilterStore";
+import { useFilterStore } from "../features/tracks/components/hooks/useFilters";
 import { useModalStore } from "../stores/useModalStore";
 import { useSelectionStore } from "../stores/useSelectionStore";
 

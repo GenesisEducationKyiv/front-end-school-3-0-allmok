@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useFilterStore, Filters } from '../../../../stores/useFilterStore';
+import { useFilterStore, Filters } from './useFilters';
 
 const cleanObject = <T extends Record<string, any>>(obj: T): Partial<T> => {
   const newObj: Partial<T> = {};

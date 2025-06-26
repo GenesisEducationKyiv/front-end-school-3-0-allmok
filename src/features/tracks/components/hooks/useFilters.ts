@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import useDebounce from '../hooks/useDebounce';
+import useDebounce from '../../../../hooks/useDebounce';
 
 export interface Filters {
   page: number;

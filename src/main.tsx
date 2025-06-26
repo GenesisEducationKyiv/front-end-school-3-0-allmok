@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App';
 import './index.css'; 
-//import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { AudioPlayerProvider } from './contexts/AudioPlayerContext';
 
 const queryClient = new QueryClient({
@@ -25,7 +25,7 @@ ReactDOM.createRoot(rootElement).render(
       <AudioPlayerProvider>
         <App />
       </AudioPlayerProvider>
-  {/* <ReactQueryDevtools initialIsOpen={false} /> */}
+      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
   </React.StrictMode>
 );

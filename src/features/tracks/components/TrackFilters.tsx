@@ -78,8 +78,8 @@ export const TrackFilters: React.FC<TrackFiltersProps> = ({
                         disabled={disabled || availableGenres.length === 0}
                     >
                         <option value="">All Genres</option>
-                        {availableGenres.map(g => (
-                          <option key={g} value={g}>{g}</option>
+                        {availableGenres.map(genreName => (
+                          <option key={genreName} value={genreName}>{genreName}</option>
                         ))}
                     </select>
                 </div>
@@ -94,8 +94,8 @@ export const TrackFilters: React.FC<TrackFiltersProps> = ({
                         disabled={disabled || uniqueArtists.length === 0}
                     >
                         <option value="">All Artists</option>
-                        {uniqueArtists.map(artist => (
-                          <option key={artist} value={artist}>{artist}</option>
+                        {uniqueArtists.map(artistName => (
+                          <option key={artistName} value={artistName}>{artistName}</option>
                         ))}
                     </select>
                 </div>

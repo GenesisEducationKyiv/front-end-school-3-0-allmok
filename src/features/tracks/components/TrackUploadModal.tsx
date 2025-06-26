@@ -6,12 +6,12 @@ interface TrackUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
   onUpload: (file: File) => Promise<void>;
-  track: Track | null; 
+  trackToUpload: Track | null; 
   isLoading: boolean;
 }
 
 const TrackUploadModal: React.FC<TrackUploadModalProps> = ({
-    isOpen, onClose, onUpload, track, isLoading
+    isOpen, onClose, onUpload, trackToUpload, isLoading
 }) => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -65,7 +65,7 @@ const TrackUploadModal: React.FC<TrackUploadModalProps> = ({
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        if (!selectedFile || !track) return;
+        if (!selectedFile || !trackToUpload) return;
         if (audioRef.current) {
             audioRef.current.pause();
         }
@@ -78,12 +78,12 @@ const TrackUploadModal: React.FC<TrackUploadModalProps> = ({
         }
     }
 
-    if (!isOpen || !track) return null;
+    if (!isOpen || !trackToUpload) return null;
 
     return (
         <Modal isOpen={isOpen} onClose={onClose}>
             <h2>Download and Listen </h2>
-            <p>Трек: <strong>{track.title} - {track.artist}</strong></p>
+            <p>Трек: <strong>{trackToUpload.title} - {trackToUpload.artist}</strong></p>
             <form onSubmit={handleSubmit}>
                 <div className="form-group">
                     <label htmlFor="audioFile">Select file: </label>
@@ -106,7 +106,7 @@ const TrackUploadModal: React.FC<TrackUploadModalProps> = ({
                             ref={audioRef} 
                             controls 
                             src={previewUrl} 
-                            data-testid={`audio-preview-${track.id}`} 
+                            data-testid={`audio-preview-${trackToUpload.id}`} 
                         >
                             Your browser does not support the element <code>audio</code>.
                         </audio>

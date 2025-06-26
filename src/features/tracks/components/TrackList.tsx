@@ -2,22 +2,32 @@ import React from 'react';
 import TrackItem from './TrackItem';
 import LoadingIndicator from '../../../components/LoadingIndicator'; 
 import { Track } from '../../../types/track'; 
-import { useBulkActions } from '../components/hooks/useBulkActions';
 import '../../../css/TrackList.css';
+import '.././components/hooks/useTrackMutations'
+import { MutationLoadingState } from '.././components/hooks/useTrackMutations';
 
 interface TrackListProps {
     tracks: Track[];
     isLoading: boolean;
-    selectionProps: ReturnType<typeof useBulkActions>['selectionProps'];
     selectedTrackIds: Set<string>;
     onEdit: (id: string) => void;
     onDelete: (id: string) => void;
     onUpload: (id: string) => void;
     onDeleteFile: (id: string) => void;
-    onGenreRemove: (trackId: string, genreToRemove: string) => void; 
-    isBulkDeleting: boolean;
+    onGenreRemove: (trackId: string, genreToRemove: string) => void;
     onBulkDelete: (ids: string[]) => void;
-}
+    mutationState: MutationLoadingState;
+    onSelectTrack: (id: string) => void;
+    onSelectAll: () => void;
+    onClearSelection: () => void;
+    isAllSelected: boolean;
+    isBulkDeleting: boolean; 
+    selectionProps: {
+        isAllSelected: boolean;
+        handleSelectAllClick: () => void;
+        handleSelectToggle: (id: string) => void;
+    };
+  }
 
 export const TrackList: React.FC<TrackListProps> = ({
     tracks, isLoading, selectionProps, selectedTrackIds,
@@ -83,7 +93,7 @@ export const TrackList: React.FC<TrackListProps> = ({
                    : tracks.map(track => (
                         <TrackItem
                             key={track.id}
-                            track={track}
+                            trackToUpload={track}
                             isSelected={selectedTrackIds.has(track.id)}
                             onSelectToggle={selectionProps.handleSelectToggle}
                             onEdit={onEdit}

@@ -81,23 +81,18 @@ export const TrackUploadModal: React.FC<TrackUploadModalProps> = ({
         }
     };
 
-    const handleSubmit = async (e: FormEvent) => {
+    const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
-        if (!selectedFile || !trackToUpload) {
-            setError("Please select a file and ensure a track is targeted.");
+        if (!selectedFile) {
+            setError("Please select a file.");
             return;
         }
-
         if (audioRef.current) {
             audioRef.current.pause();
         }
-        setError(null); 
-
-        try {
-            await onUpload(trackToUpload.id, selectedFile);
-        } catch (uploadError) {
-            console.error("Upload failed in modal:", uploadError);
-            setError(uploadError instanceof Error ? `Upload failed: ${uploadError.message}` : 'An unknown upload error occurred.');
+        setError(null);
+        if (trackToUpload) {
+            onUpload(trackToUpload.id, selectedFile);
         }
     };
     if (!isOpen || !trackToUpload) {
@@ -110,8 +105,6 @@ export const TrackUploadModal: React.FC<TrackUploadModalProps> = ({
             <p>
                 Track: <strong>{trackToUpload.title} - {trackToUpload.artist}</strong>
             </p>
-
-
             <form onSubmit={handleSubmit} noValidate>
                 <div className="form-group">
                     <label htmlFor="audioFile">Select audio file:</label>

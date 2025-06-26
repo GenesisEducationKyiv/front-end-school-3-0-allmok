@@ -1,43 +1,31 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.tsx'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import App from './App';
+import './index.css'; 
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { AudioPlayerProvider } from './contexts/AudioPlayerContext';
-import { Toaster } from 'react-hot-toast'; 
-import './index.css'
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false, 
+      retry: 1, 
+    },
+  },
+});
+
+const rootElement = document.getElementById('root');
+if (!rootElement) throw new Error('Failed to find the root element');
+
+ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <AudioPlayerProvider>
-      <App />
-      <div data-testid="toast-container">
-         <Toaster
-            position="bottom-right" 
-            toastOptions={{
 
-              duration: 4000, 
-              style: {
-                background: 'var(--bg-secondary)',
-                color: 'var(--text-primary)',
-                border: '1px solid var(--border-color)',
-              },
-
-              success: {
-                duration: 3000,
-                iconTheme: {
-                  primary: '#10b981',
-                  secondary: 'var(--bg-primary)',
-                },
-              },
-               error: {
-                duration: 5000, 
-                 iconTheme: {
-                  primary: '#ef4444',
-                  secondary: 'var(--bg-primary)',
-                },
-              },
-            }}
-          />
-      </div>
-    </AudioPlayerProvider>
+    <QueryClientProvider client={queryClient}>
+      <AudioPlayerProvider>
+        <App />
+      </AudioPlayerProvider>
+      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+    </QueryClientProvider>
   </React.StrictMode>
 );

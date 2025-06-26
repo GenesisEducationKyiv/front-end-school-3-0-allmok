@@ -6,7 +6,7 @@ import { Track, UpdateTrackData } from '../../../../types/track';
 interface EditTrackModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (id: string, data: UpdateTrackData) => Promise<void>;
+  onSubmit: (data: UpdateTrackData) => void;
   trackToEdit: Track | null;
   availableGenres: string[];
   isLoading: boolean;
@@ -16,11 +16,7 @@ export const EditTrackModal: React.FC<EditTrackModalProps> = ({
   isOpen, onClose, onSubmit, trackToEdit, availableGenres, isLoading
 }) => {
   const handleSubmit = (formData: TrackFormData) => {
-    if (trackToEdit) {
-      onSubmit(trackToEdit.id, formData as UpdateTrackData).catch((error) => {
-        console.error('Error updating track:', error);
-      });
-    }
+    onSubmit(formData as UpdateTrackData);
   };
 
   if (!trackToEdit) return null;

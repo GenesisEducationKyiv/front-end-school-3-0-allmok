@@ -8,7 +8,7 @@ import { useAudioPlayer } from '../../../contexts/AudioPlayerContext';
 import '../../../css/TrackItem.css';
 
 interface TrackItemProps {
-  track: Track;
+  trackToUpload: Track;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onUpload: (id: string) => void;
@@ -21,7 +21,7 @@ interface TrackItemProps {
 const API_FILES_BASE_URL = 'http://localhost:8000/api/files/';
 
 const TrackItem: React.FC<TrackItemProps> = ({
-  track,
+  trackToUpload,
   onEdit,
   onDelete,
   onUpload,
@@ -39,29 +39,29 @@ const TrackItem: React.FC<TrackItemProps> = ({
   const [error, setError] = useState<string | null>(null); 
 
 
-  const isThisTrackPlayingGlobally = playingTrackId === track.id && isPlaying;
+  const isThisTrackPlayingGlobally = playingTrackId === trackToUpload.id && isPlaying;
 
-  const imageUrl = track.coverImage || defaultCover;
-  const fullAudioUrl = track.audioFile ? API_FILES_BASE_URL + track.audioFile : null;
+  const imageUrl = trackToUpload.coverImage || defaultCover;
+  const fullAudioUrl = trackToUpload.audioFile ? API_FILES_BASE_URL + trackToUpload.audioFile : null;
 
   const handleInternalGenreRemove = useCallback((genreToRemove: string) => {
     if (typeof onGenreRemove === 'function') {
-      onGenreRemove(track.id, genreToRemove);
+      onGenreRemove(trackToUpload.id, genreToRemove);
     } else {
-      console.warn(`[TrackItem ${track.id}] onGenreRemove is not a function. Cannot remove genre: ${genreToRemove}`);
+      console.warn(`[TrackItem ${trackToUpload.id}] onGenreRemove is not a function. Cannot remove genre: ${genreToRemove}`);
     }
-  }, [onGenreRemove, track.id]);
+  }, [onGenreRemove, trackToUpload.id]);
 
   useEffect(() => {
     if (!waveformContainerRef.current || !fullAudioUrl) {
-        if (!fullAudioUrl && track.audioFile) { 
-            console.error(`[TrackItem ${track.id}] Invalid audio URL construction.`);
+        if (!fullAudioUrl && trackToUpload.audioFile) { 
+            console.error(`[TrackItem ${trackToUpload.id}] Invalid audio URL construction.`);
             setError("Invalid audio URL");
         }
       return;
     }
 
-    console.log(`[TrackItem ${track.id}] Creating WS instance for URL: ${fullAudioUrl}`);
+    console.log(`[TrackItem ${trackToUpload.id}] Creating WS instance for URL: ${fullAudioUrl}`);
     setError(null); 
     setIsWsReady(false); 
 
@@ -78,19 +78,19 @@ const TrackItem: React.FC<TrackItemProps> = ({
     wavesurferRef.current = ws; 
 
     const handleReady = () => {
-      console.log(`[TrackItem ${track.id}] WS Ready.`);
+      console.log(`[TrackItem ${trackToUpload.id}] WS Ready.`);
       setIsWsReady(true);
     };
 
     const handleError = (err: Error) => {
-      console.error(`[TrackItem ${track.id}] WS Error:`, err);
+      console.error(`[TrackItem ${trackToUpload.id}] WS Error:`, err);
       setError(err.message || 'Unknown WaveSurfer error');
       setIsWsReady(false); 
     };
 
     const handleFinish = () => {
-      console.log(`[TrackItem ${track.id}] WS Finished.`);
-      notifyTrackFinished(track.id); 
+      console.log(`[TrackItem ${trackToUpload.id}] WS Finished.`);
+      notifyTrackFinished(trackToUpload.id); 
     };
 
     ws.on('ready', handleReady);
@@ -98,7 +98,7 @@ const TrackItem: React.FC<TrackItemProps> = ({
     ws.on('finish', handleFinish);
 
     return () => {
-      console.log(`[TrackItem ${track.id}] Destroying WS instance.`);
+      console.log(`[TrackItem ${trackToUpload.id}] Destroying WS instance.`);
       ws.un('ready', handleReady); 
       ws.un('error', handleError);
       ws.un('finish', handleFinish);
@@ -106,7 +106,7 @@ const TrackItem: React.FC<TrackItemProps> = ({
       wavesurferRef.current = null; 
       setIsWsReady(false);
     };
-  }, [track.id, fullAudioUrl, notifyTrackFinished]);
+  }, [trackToUpload.id, fullAudioUrl, notifyTrackFinished]);
 
 
   useEffect(() => {
@@ -114,25 +114,25 @@ const TrackItem: React.FC<TrackItemProps> = ({
     if (!ws || !isWsReady) return;
     if (isThisTrackPlayingGlobally) {
       if (!ws.isPlaying()) {
-        console.log(`[TrackItem ${track.id}] Received PLAY command from context.`);
-        ws.play().catch(e => console.error(`[TrackItem ${track.id}] Error on context play():`, e));
+        console.log(`[TrackItem ${trackToUpload.id}] Received PLAY command from context.`);
+        ws.play().catch(e => console.error(`[TrackItem ${trackToUpload.id}] Error on context play():`, e));
       }
     }
 
     else {
       if (ws.isPlaying()) {
-        console.log(`[TrackItem ${track.id}] Received PAUSE command from context.`);
+        console.log(`[TrackItem ${trackToUpload.id}] Received PAUSE command from context.`);
         ws.pause();
       }
     }
-  }, [isThisTrackPlayingGlobally, isWsReady, track.id]);
+  }, [isThisTrackPlayingGlobally, isWsReady, trackToUpload.id]);
 
 
-  const handleEditClick = useCallback(() => onEdit(track.id), [onEdit, track.id]);
-  const handleDeleteClick = useCallback(() => onDelete(track.id), [onDelete, track.id]);
-  const handleUploadClick = useCallback(() => onUpload(track.id), [onUpload, track.id]);
-  const handleDeleteFileClick = useCallback(() => onDeleteFile(track.id), [onDeleteFile, track.id]);
-  const handleSelectChange = useCallback(() => onSelectToggle(track.id), [onSelectToggle, track.id]);
+  const handleEditClick = useCallback(() => onEdit(trackToUpload.id), [onEdit, trackToUpload.id]);
+  const handleDeleteClick = useCallback(() => onDelete(trackToUpload.id), [onDelete, trackToUpload.id]);
+  const handleUploadClick = useCallback(() => onUpload(trackToUpload.id), [onUpload, trackToUpload.id]);
+  const handleDeleteFileClick = useCallback(() => onDeleteFile(trackToUpload.id), [onDeleteFile, trackToUpload.id]);
+  const handleSelectChange = useCallback(() => onSelectToggle(trackToUpload.id), [onSelectToggle, trackToUpload.id]);
 
   const handleImageError = useCallback((e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     (e.target as HTMLImageElement).src = defaultCover;
@@ -140,46 +140,46 @@ const TrackItem: React.FC<TrackItemProps> = ({
 
   const handlePlayPauseClick = useCallback(() => {
     if (!fullAudioUrl) {
-        console.warn(`[TrackItem ${track.id}] No audio file URL.`);
+        console.warn(`[TrackItem ${trackToUpload.id}] No audio file URL.`);
         return;
     }
 
     if (!isWsReady && !error) {
-        console.warn(`[TrackItem ${track.id}] Play/Pause clicked but WS not ready yet.`);
+        console.warn(`[TrackItem ${trackToUpload.id}] Play/Pause clicked but WS not ready yet.`);
 
         return;
     }
     if (error) {
-        console.error(`[TrackItem ${track.id}] Cannot play/pause due to WS error: ${error}`);
+        console.error(`[TrackItem ${trackToUpload.id}] Cannot play/pause due to WS error: ${error}`);
         return;
     }
 
-    console.log(`[TrackItem ${track.id}] Play/Pause button clicked. Currently playing globally: ${isThisTrackPlayingGlobally}`);
+    console.log(`[TrackItem ${trackToUpload.id}] Play/Pause button clicked. Currently playing globally: ${isThisTrackPlayingGlobally}`);
 
     if (isThisTrackPlayingGlobally) {
-      requestPause(track.id); 
+      requestPause(trackToUpload.id); 
     } else {
-      requestPlay(track.id); 
+      requestPlay(trackToUpload.id); 
     }
-  }, [track.id, fullAudioUrl, isThisTrackPlayingGlobally, requestPlay, requestPause, isWsReady, error]);
+  }, [trackToUpload.id, fullAudioUrl, isThisTrackPlayingGlobally, requestPlay, requestPause, isWsReady, error]);
 
   return (
     <div
       className={`track-item ${isSelected ? 'selected' : ''} ${isThisTrackPlayingGlobally ? 'active' : ''}`}
-      data-testid={`track-item-${track.id}`}
+      data-testid={`track-item-${trackToUpload.id}`}
     >
       <input
         type="checkbox"
         checked={isSelected}
         onChange={handleSelectChange}
         className="track-item-checkbox"
-        data-testid={`track-checkbox-${track.id}`}
-        aria-label={`Select track ${track.title}`}
+        data-testid={`track-checkbox-${trackToUpload.id}`}
+        aria-label={`Select track ${trackToUpload.title}`}
       />
 
       <img
         src={imageUrl}
-        alt={`Cover for ${track.title}`}
+        alt={`Cover for ${trackToUpload.title}`}
         className="track-item-cover"
         onError={handleImageError}
       />
@@ -187,40 +187,40 @@ const TrackItem: React.FC<TrackItemProps> = ({
       <div className="track-item-content">
         <div className="track-item-main-info">
           <div className="track-info">
-            {track.audioFile && (
+            {trackToUpload.audioFile && (
               <button
                 onClick={handlePlayPauseClick}
                 className={`play-pause-button ${isThisTrackPlayingGlobally ? 'playing' : 'paused'}`}
                 disabled={!isWsReady && !error}
-                data-testid={isThisTrackPlayingGlobally ? `pause-button-${track.id}` : `play-button-${track.id}`}
+                data-testid={isThisTrackPlayingGlobally ? `pause-button-${trackToUpload.id}` : `play-button-${trackToUpload.id}`}
                 aria-label={isThisTrackPlayingGlobally ? 'Pause' : 'Play'}
                 title={isThisTrackPlayingGlobally ? 'Pause' : 'Play'}
               >
                 {isThisTrackPlayingGlobally ? '❚❚' : '▶'}
               </button>
             )}
-            <span data-testid={`track-item-${track.id}-artist`}>{track.artist}</span>
+            <span data-testid={`track-item-${trackToUpload.id}-artist`}>{trackToUpload.artist}</span>
             {' - '}
-            <span data-testid={`track-item-${track.id}-title`}>{track.title}</span>
-            {track.album && (
-              <span className="track-album">({track.album})</span>
+            <span data-testid={`track-item-${trackToUpload.id}-title`}>{trackToUpload.title}</span>
+            {trackToUpload.album && (
+              <span className="track-album">({trackToUpload.album})</span>
             )}
           </div>
 
           <div className="track-actions">
-             <button onClick={handleEditClick} data-testid={`edit-track-${track.id}`} className="button-edit">Edit</button>
-             <button onClick={handleDeleteClick} data-testid={`delete-track-${track.id}`} className="button-delete">Delete</button>
-             {track.audioFile ? (
-               <button onClick={handleDeleteFileClick} data-testid={`delete-track-file-${track.id}`} className="button-delete-file">Delete File</button>
+             <button onClick={handleEditClick} data-testid={`edit-track-${trackToUpload.id}`} className="button-edit">Edit</button>
+             <button onClick={handleDeleteClick} data-testid={`delete-track-${trackToUpload.id}`} className="button-delete">Delete</button>
+             {trackToUpload.audioFile ? (
+               <button onClick={handleDeleteFileClick} data-testid={`delete-track-file-${trackToUpload.id}`} className="button-delete-file">Delete File</button>
              ) : (
-               <button onClick={handleUploadClick} data-testid={`upload-track-${track.id}`} className="button-upload">Upload</button>
+               <button onClick={handleUploadClick} data-testid={`upload-track-${trackToUpload.id}`} className="button-upload">Upload</button>
              )}
           </div>
         </div>
 
         <div className="track-genres">
-          {track.genres && track.genres.length > 0 ? (
-            track.genres.map((genre) => (
+          {trackToUpload.genres && trackToUpload.genres.length > 0 ? (
+            trackToUpload.genres.map((genre) => (
               <GenreTag key={genre} genre={genre} 
               onRemove={handleInternalGenreRemove}
               />
@@ -231,12 +231,12 @@ const TrackItem: React.FC<TrackItemProps> = ({
         </div>
 
   
-        {track.audioFile && (
+        {trackToUpload.audioFile && (
           <div
               ref={waveformContainerRef}
               className="waveform-container"
-              data-testid={`waveform-${track.id}`}
-              data-ui-test-id={`audio-progress-${track.id}`}
+              data-testid={`waveform-${trackToUpload.id}`}
+              data-ui-test-id={`audio-progress-${trackToUpload.id}`}
               style={{ marginTop: '10px', minHeight: '52px' }}
           >
             {!isWsReady && !error && <div className="waveform-status">Loading waveform...</div>}

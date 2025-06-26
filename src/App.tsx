@@ -2,7 +2,7 @@ import TracksPage from './pages/TracksPage';
 import './App.css'; 
 import { Toaster } from 'react-hot-toast';
 import { BrowserRouter, Routes, Route } from 'react-router-dom'; 
-import { FilterUrlSync } from '../src/features/tracks/components/FilterUrlSync';
+
 
 function App() {
   return (
@@ -17,8 +17,6 @@ function App() {
             }}
           /> 
         </div>
-
-        <FilterUrlSync />
         <Routes>
           <Route path="/" element={<TracksPage />} />
         </Routes>

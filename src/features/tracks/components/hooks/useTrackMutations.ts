@@ -12,7 +12,7 @@ import toast from 'react-hot-toast';
 import { useModalStore } from '../../../../stores/useModalStore';
 import { useSelectionStore } from '../../../../stores/useSelectionStore';
 import { NewTrackData, UpdateTrackData } from '../../../../types/track';
-
+import {useApiParams} from '../hooks/useFilters'
 
 export const useTrackMutations = () => {
   const closeModal = useModalStore(s => s.closeModal);
@@ -35,8 +35,14 @@ export const useTrackMutations = () => {
 
   const [updateTrackMutation, { loading: isUpdating }] = useMutation(UPDATE_TRACK, {
 
+    refetchQueries: [
+      { 
+        query: GET_TRACKS, 
+        variables: { input: useApiParams } 
+      }
+    ],
     onCompleted: () => {
-      toast.success('Track updated successfully!');
+      toast.success('Track updated!');
       closeModal();
     },
     onError: (error) => handleError(error, 'update track'),

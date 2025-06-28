@@ -1,25 +1,23 @@
 import React from 'react';
 import { useSubscription } from '@apollo/client';
-import { ACTIVE_TRACK_SUBSCRIPTION } from '../graphql/subscriptions'; 
+import { ACTIVE_TRACK_SUBSCRIPTION } from '../graphql/subscriptions';
 
 export const ActiveTrackDisplay: React.FC = () => {
   const { data, loading, error } = useSubscription(ACTIVE_TRACK_SUBSCRIPTION);
 
-  console.log('[Subscription] Loading:', loading);
-  console.log('[Subscription] Error:', error);
-  console.log('[Subscription] Data:', data);
-
   const style: React.CSSProperties = {
     position: 'fixed',
-    bottom: '10px',
-    right: '10px',
-    padding: '10px 20px',
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    top:'0',
+    left: '0',
+    right: '0',
+    width: '100%',
+    padding: '8px 0',
+    backgroundColor: 'rgba(34, 3, 59, 0.2)',
     color: 'white',
-    borderRadius: '8px',
     zIndex: 1000,
-    minWidth: '200px',
     textAlign: 'center',
+    fontSize: '12px',
+    lineHeight: '1.2',
   };
 
   if (loading) {
@@ -34,7 +32,7 @@ export const ActiveTrackDisplay: React.FC = () => {
   return (
     <div style={style}>
       <strong>Live:</strong>{' '}
-      {data?.activeTrackChanged?.title 
+      {data?.activeTrackChanged?.title
         ? `${data.activeTrackChanged.title} - ${data.activeTrackChanged.artist}`
         : 'Waiting for track...'}
     </div>

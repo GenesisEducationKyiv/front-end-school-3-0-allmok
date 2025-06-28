@@ -52,11 +52,18 @@ export const TrackModals: React.FC<TrackModalsProps> = ({
         isOpen={activeModal === 'editTrack'}
         onClose={closeModal}
         trackToEdit={trackForModal}
-        onSubmit={async () => {
-          if (trackIdForModal && trackForModal) {
-            await onUpdate(trackIdForModal, trackForModal);
+        onSubmit={(formData: UpdateTrackData) => {
+          if (trackIdForModal) {
+            const cleanInput: UpdateTrackData = {
+              title: formData.title,
+              artist: formData.artist,
+              album: formData.album,
+              genres: formData.genres,
+              coverImage: formData.coverImage,
+            };
+            onUpdate(trackIdForModal, cleanInput);
           }
-        }}
+        }} 
         availableGenres={availableGenres}
         isLoading={mutationLoading.isUpdating}
       />

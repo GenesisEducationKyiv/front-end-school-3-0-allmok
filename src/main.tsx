@@ -1,31 +1,54 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import App from './App';
-import './index.css'; 
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { AudioPlayerProvider } from './contexts/AudioPlayerContext';
+import { 
+  ApolloClient, 
+  InMemoryCache, 
+  ApolloProvider, 
+  HttpLink, 
+  split 
+} from '@apollo/client';
+import { getMainDefinition } from '@apollo/client/utilities';
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
+import { createClient as createWsClient } from 'graphql-ws';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false, 
-      retry: 1, 
-    },
-  },
+import App from './App';
+import { AudioPlayerProvider } from './contexts/AudioPlayerContext'; 
+import './index.css';
+
+
+const BACKEND_URL = 'localhost:8000';
+
+const httpLink = new HttpLink({
+  uri: `http://${BACKEND_URL}/graphql`
 });
 
-const rootElement = document.getElementById('root');
-if (!rootElement) throw new Error('Failed to find the root element');
+const wsLink = new GraphQLWsLink(createWsClient({
+  url: `ws://${BACKEND_URL}/graphql`
+}));
 
-ReactDOM.createRoot(rootElement).render(
+const splitLink = split(
+  ({ query }) => {
+    const definition = getMainDefinition(query);
+    return (
+      definition.kind === 'OperationDefinition' &&
+      definition.operation === 'subscription'
+    );
+  },
+  wsLink, 
+  httpLink,
+);
+
+const client = new ApolloClient({
+  link: splitLink,
+  cache: new InMemoryCache(),
+});
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-
-    <QueryClientProvider client={queryClient}>
+    <ApolloProvider client={client}>
       <AudioPlayerProvider>
         <App />
       </AudioPlayerProvider>
-      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
-    </QueryClientProvider>
+    </ApolloProvider>
   </React.StrictMode>
 );

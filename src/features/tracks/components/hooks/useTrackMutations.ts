@@ -1,166 +1,102 @@
-import { useMutation, useQueryClient, QueryKey } from '@tanstack/react-query';
+import { useMutation } from '@apollo/client';
+import { 
+  CREATE_TRACK, 
+  UPDATE_TRACK, 
+  DELETE_TRACK,
+  DELETE_TRACK_FILE,
+  DELETE_MULTIPLE_TRACKS,
+  // UPLOAD_TRACK_FILE 
+} from '../../../../graphql/mutations';
+import { GET_TRACKS } from '../../../../graphql/queries';
 import toast from 'react-hot-toast';
-import {
-  createTrack,
-  updateTrack,
-  deleteTrack,
-  uploadTrackFile,
-  deleteTrackFile,
-  deleteMultipleTracks,
-} from '../../../../api/trackService';
-import { trackKeys } from './useTracksQuery';
 import { useModalStore } from '../../../../stores/useModalStore';
 import { useSelectionStore } from '../../../../stores/useSelectionStore';
-import { Track, GetTracksResponse, UpdateTrackData, NewTrackData, BulkDeleteResponse } from '../../../../types/track';
+import { NewTrackData, UpdateTrackData } from '../../../../types/track';
 
-type TrackMutationContext = {
-  previousTracksData?: GetTracksResponse;
-  currentQueryKey?: QueryKey;
-};
 
 export const useTrackMutations = () => {
-  const queryClient = useQueryClient();
-  const closeModal = useModalStore((s) => s.closeModal);
-  const clearSelection = useSelectionStore((s) => s.clearSelection);
+  const closeModal = useModalStore(s => s.closeModal);
+  const clearSelection = useSelectionStore(s => s.clearSelection);
 
-  const invalidateTracksList = () => {
-    queryClient.invalidateQueries({ queryKey: trackKeys.lists() });
-  };
-
-  const handleError = (error: unknown, context: string) => {
-    const message = error instanceof Error ? error.message : "An unknown error occurred";
-    toast.error(`Failed to ${context}: ${message}`);
+  const handleError = (error: Error, context: string) => {
+    toast.error(`Failed to ${context}: ${error.message}`);
     console.error(`Error during ${context}:`, error);
   };
 
-  const { mutate: createTrackMutation, isPending: isCreating } = useMutation<Track, Error, NewTrackData>({
-    mutationFn: createTrack,
-    onSuccess: () => {
+
+  const [createTrackMutation, { loading: isCreating }] = useMutation(CREATE_TRACK, {
+    refetchQueries: [{ query: GET_TRACKS, variables: { input: {} } }],
+    onCompleted: () => {
       toast.success('Track created successfully!');
-      invalidateTracksList();
       closeModal();
     },
     onError: (error) => handleError(error, 'create track'),
   });
 
-  const { mutate: updateTrackMutation, isPending: isUpdating } = useMutation<
-  Track, 
-  Error, 
-  { id: string; trackData: UpdateTrackData }, 
-  TrackMutationContext | undefined 
->({
-  mutationFn: updateTrack,
-  onMutate: async (newData) => {
-    await queryClient.cancelQueries({ queryKey: trackKeys.lists() });
-    
-    const queries = queryClient.getQueriesData<GetTracksResponse>({ queryKey: trackKeys.lists() });
-    const [currentQueryKey, previousTracksData] = queries[0] ?? []; 
+  const [updateTrackMutation, { loading: isUpdating }] = useMutation(UPDATE_TRACK, {
 
-    if (!currentQueryKey || !previousTracksData) {
-      return undefined; 
-    }
-    
-    const newTracks = previousTracksData.tracks.map(track => 
-        track.id === newData.id ? { ...track, ...newData.trackData } : track
-    );
-    queryClient.setQueryData(currentQueryKey, { ...previousTracksData, tracks: newTracks });
-    
-    closeModal();
-    return { previousTracksData, currentQueryKey };
-  },
-  onError: (err, _vars, context) => {
-    handleError(err, 'update track');
-    if (context?.previousTracksData && context.currentQueryKey) {
-      queryClient.setQueryData(context.currentQueryKey, context.previousTracksData);
-    }
-  },
-  onSettled: (_data, _error, _vars, context) => {
-    if (context?.currentQueryKey) {
-      queryClient.invalidateQueries({ queryKey: context.currentQueryKey });
-    } else {
-      invalidateTracksList();
-    }
-  },
-  onSuccess: () => {
-    toast.success('Track updated successfully!');
-  }
-});
-
-const { mutate: deleteTrackMutation } = useMutation<void, Error, string>({
-  mutationFn: deleteTrack,
-  onSuccess: () => {
-    toast.success('Track deleted!');
-    invalidateTracksList();
-    closeModal();
-  },
-  onError: (error) => handleError(error, 'delete track'),
-});
-  
-  const { mutate: uploadFileMutation, isPending: isUploading } = useMutation<Track, Error, { id: string; file: File }>({
-    mutationFn: uploadTrackFile,
-    onSuccess: (updatedTrack) => {
-      toast.success('File uploaded successfully!');
-      queryClient.setQueriesData<GetTracksResponse>({ queryKey: trackKeys.lists() }, (oldData) => {
-          if (!oldData) return;
-          return {
-              ...oldData,
-              tracks: oldData.tracks.map(t => t.id === updatedTrack.id ? updatedTrack : t),
-          };
-      });
+    onCompleted: () => {
+      toast.success('Track updated successfully!');
       closeModal();
     },
-    onError: (error) => handleError(error, 'upload file'),
+    onError: (error) => handleError(error, 'update track'),
   });
 
- 
-  const { mutate: deleteFileMutation, isPending: isDeletingFile } = useMutation<Track, Error, string>({
-    mutationFn: deleteTrackFile, 
-    onSuccess: (updatedTrack) => {
+  const [deleteTrackMutation, { loading: isDeleting }] = useMutation(DELETE_TRACK, {
+    refetchQueries: [{ query: GET_TRACKS, variables: { input: {} } }],
+    onCompleted: () => {
+      toast.success('Track deleted!');
+      closeModal();
+    },
+    onError: (error) => handleError(error, 'delete track'),
+  });
+  
+  const [deleteFileMutation, { loading: isDeletingFile }] = useMutation(DELETE_TRACK_FILE, {
+    onCompleted: () => {
       toast.success('File deleted successfully!');
-      queryClient.setQueriesData<GetTracksResponse>({ queryKey: trackKeys.lists() }, (oldData) => {
-          if (!oldData) return;
-          return {
-              ...oldData,
-              tracks: oldData.tracks.map(t => t.id === updatedTrack.id ? updatedTrack : t),
-          };
-      });
       closeModal();
     },
     onError: (error) => handleError(error, 'delete file'),
   });
 
-
-  const { mutate: bulkDeleteMutation, isPending: isBulkDeleting } = useMutation<BulkDeleteResponse, Error, string[]>({
-    mutationFn: deleteMultipleTracks,
-    onSuccess: (data) => {
-      toast.success(`${data.success.length} track(s) deleted.`);
-      if(data.failed.length > 0) {
-        toast.error(`Failed to delete ${data.failed.length} track(s).`);
+  const [bulkDeleteMutation, { loading: isBulkDeleting }] = useMutation(DELETE_MULTIPLE_TRACKS, {
+    refetchQueries: [{ query: GET_TRACKS, variables: { input: {} } }],
+    onCompleted: (data) => {
+      const { success, failed } = data.deleteTracks;
+      toast.success(`${success.length} track(s) deleted successfully.`);
+      if (failed.length > 0) {
+        toast.error(`Failed to delete ${failed.length} track(s).`);
       }
-      invalidateTracksList();
       clearSelection();
     },
     onError: (error) => handleError(error, 'bulk delete'),
   });
 
-  const isDeleting = false;
+  const uploadFile = async (id: string, file: File) => {
+    console.warn('Upload file mutation is not implemented yet. Requires `apollo-upload-client`.');
+    toast.error('File upload is not configured.');
+    //uploadFileMutation({ variables: { id, file } })
+  };
+  const isUploading = false; 
 
   return {
-    createTrack: createTrackMutation,
-    updateTrack: updateTrackMutation,
-    deleteTrack: deleteTrackMutation, 
-    uploadFile: uploadFileMutation,
-    deleteFile: deleteFileMutation,
-    bulkDelete: bulkDeleteMutation,
+    createTrack: (input: NewTrackData) => createTrackMutation({ variables: { input } }),
+    updateTrack: (id: string, input: UpdateTrackData) => updateTrackMutation({ variables: { id, input } }),
+    deleteTrack: (id: string) => deleteTrackMutation({ variables: { id } }),
+    deleteFile: (id: string) => deleteFileMutation({ variables: { id } }),
+    bulkDelete: (ids: string[]) => bulkDeleteMutation({ variables: { ids } }),
+    uploadFile,
     mutationState: {
-      isCreating,
-      isUpdating,
-      isDeleting,
-      isUploading,
-      isDeletingFile,
-      isBulkDeleting,
-      isAnyLoading: isCreating || isUpdating || isDeleting || isUploading || isDeletingFile || isBulkDeleting,
-  }
+        isCreating,
+        isUpdating,
+        isDeleting,
+        isUploading,
+        isDeletingFile,
+        isBulkDeleting,
+        isAnyLoading: isCreating || isUpdating || isDeleting || isUploading || isDeletingFile || isBulkDeleting,
+    }
+  };
 };
-};
+
+
 export type MutationLoadingState = ReturnType<typeof useTrackMutations>['mutationState'];

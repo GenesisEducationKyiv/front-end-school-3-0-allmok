@@ -1,157 +1,91 @@
-import React, { useMemo, useCallback } from "react";
+import React from 'react';
+import { ApolloError } from '@apollo/client';
 
-import Pagination from "../components/Pagination/Pagination";
-import LoadingIndicator from "../components/LoadingIndicator";
-import ErrorDisplay from "../features/tracks/components/ErrorDisplay";
-import { ActiveTrackDisplay } from "../components/ActiveTrackDisplay";
-import { TrackFilters } from "../features/tracks/components/TrackFilters";
-import { TrackList } from "../features/tracks/components/TrackList";
-import { TrackModals } from "../features/tracks/components/TrackModals";
+import Pagination from '../components/Pagination/Pagination';
+import LoadingIndicator from '../components/LoadingIndicator';
+import ErrorDisplay from '../features/tracks/components/ErrorDisplay';
+import { ActiveTrackDisplay } from '../components/ActiveTrackDisplay';
+import { TrackFilters } from '../features/tracks/components/TrackFilters';
+import { TrackList } from '../features/tracks/components/TrackList';
+import { TrackModals } from '../features/tracks/components/TrackModals';
+import { CreateTrackButton } from '../components/CreateTrackButton'; 
 
-
-import { useTracksQuery, useGenresQuery } from "../features/tracks/components/hooks/useTracksQuery";
-import { useTrackMutations } from "../features/tracks/components/hooks/useTrackMutations";
-import { useFilterStore } from "../features/tracks/components/hooks/useFilters";
-import { useModalStore } from "../stores/useModalStore";
-import { useSelectionStore } from "../stores/useSelectionStore";
+import { useTracksPageController } from '../features/tracks/components/hooks/useTracksPageController';
 
 
-import { Track } from "../types/track";
-import { AppError } from "../types/errors";
-import { ApolloError } from "@apollo/client";
-import "../css/TracksPage.css";
-
+import { AppError } from '../types/errors';
+import '../css/TracksPage.css';
 
 const TracksPage: React.FC = () => {
+  const controller = useTracksPageController();
 
-  const {
-    data: tracksData,
-    loading: isLoading,
-    error,
-    refetch,
-  } = useTracksQuery();
-  const { data: genresData } = useGenresQuery();
-  const availableGenres = genresData?.genres ?? [];
-
-  const {
-    createTrack,
-    updateTrack,
-    deleteTrack,
-    bulkDelete,
-    uploadFile,
-    deleteFile,
-    mutationState,
-  } = useTrackMutations();
-
-
-  const { page, setPage } = useFilterStore();
-  const { activeModal, payload, openModal, closeModal } = useModalStore();
-  const { selectedIds, toggleId, selectAll, clearSelection } = useSelectionStore();
-
-  const tracks: Track[] = tracksData?.tracks.data ?? [];
-  const meta = tracksData?.tracks.meta;
-  const isBusy = isLoading || mutationState.isAnyLoading;
-
-  const uniqueArtists = useMemo(() => {
-    return [...new Set(tracks.map((t) => t.artist))].sort();
-  }, [tracks]);
-
-
-  const findTrackById = useCallback(
-    (id: string | null | undefined): Track | null => {
-      return id ? tracks.find((t) => t.id === id) ?? null : null;
-    },
-    [tracks]
-  );
-
-  const handleGenreRemove = useCallback(
-    (trackId: string, genreToRemove: string) => {
-      const track = findTrackById(trackId);
-      if (!track || !track.genres) return;
-
-      const updatedGenres = track.genres.filter((g) => g !== genreToRemove);
-      updateTrack(trackId, { genres: updatedGenres });
-    },
-    [findTrackById, updateTrack]
-  );
-
-
-  if (isLoading && !tracksData) {
+  if (controller.isLoading && controller.tracks.length === 0) {
     return <LoadingIndicator />;
   }
 
-  if (error) {
+  if (controller.error) {
     const mapApolloErrorToAppError = (apolloError: ApolloError): AppError => ({
-      type: "UnknownError",
+      type: 'UnknownError',
       message: apolloError.message,
       originalError: apolloError,
     });
-    return <ErrorDisplay error={mapApolloErrorToAppError(error)} onRetry={() => refetch()} />;
+    return <ErrorDisplay error={mapApolloErrorToAppError(controller.error)} onRetry={controller.refetch} />;
   }
 
   return (
     <div className="tracks-page">
       <ActiveTrackDisplay />
-      <h1 data-testid="tracks-header">Music Tracks</h1>
+      <h1 data-testid="tracks-header">Tracks</h1>
 
       <TrackFilters
-        availableGenres={availableGenres}
-        uniqueArtists={uniqueArtists}
-        disabled={isBusy}
+        availableGenres={controller.availableGenres}
+        uniqueArtists={controller.uniqueArtists}
+        disabled={controller.isBusy}
       />
 
-      <button
-        className="fab-create-track"
-        onClick={() => openModal("createTrack")}
-        disabled={isBusy}
-        data-testid="create-track-button"
-        title="Create new track"
-      >
-        <span className="fab-icon" aria-hidden="true">+</span>
-        <span className="fab-text">Add Track</span>
-      </button>
+      <CreateTrackButton
+        onClick={() => controller.openModal('createTrack')}
+        disabled={controller.isBusy}
+      />
 
       <TrackList
-        trackToUpload={tracks}
-        isLoading={isLoading}
-        selectedTrackIds={selectedIds}
+        trackToUpload={controller.tracks}
+        isLoading={controller.isLoading}
+        selectedTrackIds={controller.selectedIds}
         selectionProps={{
-          handleSelectToggle: toggleId,
-          handleSelectAllClick: (e: React.ChangeEvent<HTMLInputElement>) => {
-            const allIdsOnPage = tracks.map((t) => t.id);
-            e.target.checked ? selectAll(allIdsOnPage) : clearSelection();
-          },
-          isAllSelected: tracks.length > 0 && selectedIds.size === tracks.length,
+          handleSelectToggle: controller.toggleId,
+          handleSelectAllClick: controller.handleSelectAllClick,
+          isAllSelected: controller.isAllSelected,
         }}
-        onEdit={(id) => openModal("editTrack", { trackId: id })}
-        onDelete={(id) => openModal("deleteTrack", { trackId: id })}
-        onUpload={(id) => openModal("uploadTrackFile", { trackId: id })}
-        onDeleteFile={(id) => openModal("deleteTrackFile", { trackId: id })}
-        onGenreRemove={handleGenreRemove}
-        onBulkDelete={() => bulkDelete(Array.from(selectedIds))}
-        isBulkDeleting={mutationState.isBulkDeleting}
+        onEdit={(id) => controller.openModal('editTrack', { trackId: id })}
+        onDelete={(id) => controller.openModal('deleteTrack', { trackId: id })}
+        onUpload={(id) => controller.openModal('uploadTrackFile', { trackId: id })}
+        onDeleteFile={(id) => controller.openModal('deleteTrackFile', { trackId: id })}
+        onGenreRemove={controller.handleGenreRemove}
+        onBulkDelete={controller.handleBulkDelete}
+        isBulkDeleting={controller.mutationState.isBulkDeleting}
       />
 
-      {meta && meta.totalPages > 1 && (
+      {controller.meta && controller.meta.totalPages > 1 && (
         <Pagination
-          currentPage={page}
-          totalPages={meta.totalPages}
-          onPageChange={setPage}
+          currentPage={controller.page}
+          totalPages={controller.meta.totalPages}
+          onPageChange={controller.setPage}
         />
       )}
 
       <TrackModals
-        activeModal={activeModal}
-        modalPayload={payload}
-        closeModal={closeModal}
-        findTrackById={findTrackById}
-        availableGenres={availableGenres}
-        mutationLoading={mutationState}
-        onCreate={createTrack}
-        onUpdate={updateTrack}
-        onDelete={deleteTrack}
-        onUploadFile={uploadFile}
-        onDeleteFile={deleteFile}
+        activeModal={controller.activeModal}
+        modalPayload={controller.modalPayload}
+        closeModal={controller.closeModal}
+        findTrackById={controller.findTrackById}
+        availableGenres={controller.availableGenres}
+        mutationLoading={controller.mutationState}
+        onCreate={controller.createTrack}
+        onUpdate={controller.updateTrack}
+        onDelete={controller.deleteTrack}
+        onUploadFile={controller.uploadFile}
+        onDeleteFile={controller.deleteFile}
       />
     </div>
   );

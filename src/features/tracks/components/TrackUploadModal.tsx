@@ -34,9 +34,12 @@ const TrackUploadModal: React.FC<TrackUploadModalProps> = ({
     if (selectedFile) {
       const objectUrl = URL.createObjectURL(selectedFile);
       setPreviewUrl(objectUrl);
-      return () => URL.revokeObjectURL(objectUrl);
+      return () => {
+        URL.revokeObjectURL(objectUrl);
+      };
     }
     setPreviewUrl(null);
+    return () => {}; 
   }, [selectedFile]);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {

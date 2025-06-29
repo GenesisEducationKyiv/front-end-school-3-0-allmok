@@ -1,25 +1,23 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { 
-  ApolloClient, 
-  InMemoryCache, 
-  ApolloProvider, 
-  HttpLink, 
-  split 
+import {
+  ApolloClient,
+  InMemoryCache,
+  ApolloProvider,
+  split,
+  createHttpLink
 } from '@apollo/client';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { createClient as createWsClient } from 'graphql-ws';
-
 import App from './App';
-import { AudioPlayerProvider } from './contexts/AudioPlayerContext'; 
+import { AudioPlayerProvider } from './contexts/AudioPlayerContext';
 import './index.css';
-
 
 const BACKEND_URL = 'localhost:8000';
 
-const httpLink = new HttpLink({
-  uri: `http://${BACKEND_URL}/graphql`
+const httpLink = createHttpLink({
+  uri: `http://${BACKEND_URL}/graphql`,
 });
 
 const wsLink = new GraphQLWsLink(createWsClient({
@@ -34,8 +32,8 @@ const splitLink = split(
       definition.operation === 'subscription'
     );
   },
-  wsLink, 
-  httpLink,
+  wsLink,
+  httpLink
 );
 
 const client = new ApolloClient({

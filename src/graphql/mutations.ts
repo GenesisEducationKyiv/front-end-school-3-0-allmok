@@ -43,11 +43,18 @@ export const DELETE_MULTIPLE_TRACKS = gql`
   }
 `;
 
-// export const UPLOAD_TRACK_FILE = gql`
-//   mutation UploadTrackFile($id: String!, $file: Upload!) {
-//     uploadTrackFile(id: $id, file: $file) {
-//       id
-//       audioFile
-//     }
-//   }
-// `;
+export const UPLOAD_TRACK_FILE = gql`
+  mutation UploadTrackFile($id: String!, $file: Upload!) {
+    uploadTrackFile(id: $id, file: $file) {
+      id
+      title
+      artist
+      album
+      genres
+      coverImage
+      audioFile
+      createdAt
+      updatedAt
+    }
+  }
+`;

@@ -26,5 +26,8 @@
     },
     "types": ["vite/client", "vitest/globals"]
   },
-  "include": ["src"]
+  "include": [
+    "src",
+    "src/types/apollo-upload-client.d.ts" 
+]
 }

@@ -66,6 +66,7 @@ export const useTrackMutations = () => {
   });
 
   const [deleteFileMutation, { loading: isDeletingFile }] = useMutation(DELETE_TRACK_FILE, {
+    ...refetchQueriesOptions,
     onCompleted: () => {
       toast.success('Audio file deleted successfully!');
       closeModal();

@@ -19,21 +19,21 @@ export const UPDATE_TRACK = gql`
 `;
 
 export const DELETE_TRACK = gql`
-  mutation DeleteTrack($id: String!) {
+  mutation DeleteTrack($id: ID!) { 
     deleteTrack(id: $id)
   }
 `;
 
 
+
 export const DELETE_TRACK_FILE = gql`
-  mutation DeleteTrackFile($id: String!) {
+  mutation DeleteTrackFile($id: ID!) {
     deleteTrackFile(id: $id) {
       id
       audioFile
     }
   }
 `;
-
 export const DELETE_MULTIPLE_TRACKS = gql`
   mutation DeleteTracks($ids: [String!]!) {
     deleteTracks(ids: $ids) {

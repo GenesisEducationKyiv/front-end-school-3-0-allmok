@@ -1,45 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import {
-  ApolloClient,
-  InMemoryCache,
-  ApolloProvider,
-  split,
-  createHttpLink
-} from '@apollo/client';
-import { getMainDefinition } from '@apollo/client/utilities';
-import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
-import { createClient as createWsClient } from 'graphql-ws';
+import { ApolloProvider } from '@apollo/client';
+
+import { client } from './graphql/apolloClient';
+
 import App from './App';
 import { AudioPlayerProvider } from './contexts/AudioPlayerContext';
 import './index.css';
-
-const BACKEND_URL = 'localhost:8000';
-
-const httpLink = createHttpLink({
-  uri: `http://${BACKEND_URL}/graphql`,
-});
-
-const wsLink = new GraphQLWsLink(createWsClient({
-  url: `ws://${BACKEND_URL}/graphql`
-}));
-
-const splitLink = split(
-  ({ query }) => {
-    const definition = getMainDefinition(query);
-    return (
-      definition.kind === 'OperationDefinition' &&
-      definition.operation === 'subscription'
-    );
-  },
-  wsLink,
-  httpLink
-);
-
-const client = new ApolloClient({
-  link: splitLink,
-  cache: new InMemoryCache(),
-});
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

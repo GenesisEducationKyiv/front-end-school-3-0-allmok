@@ -22,6 +22,7 @@ const API_FILES_BASE_URL = 'http://localhost:8000/api/files/';
 
 const TrackItem: React.FC<TrackItemProps> = ({
   trackToUpload,
+  
   onEdit,
   onDelete,
   onUpload,

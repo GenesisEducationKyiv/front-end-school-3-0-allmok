@@ -18,11 +18,14 @@
     "test:ct": "playwright test -c playwright-ct.config.ts"
   },
   "dependencies": {
+    "@apollo/client": "^3.13.8",
     "@mobily/ts-belt": "^3.13.1",
     "@playwright/experimental-ct-react": "^1.53.0",
     "@tanstack/react-query": "^5.81.2",
     "@tanstack/react-query-devtools": "^5.81.2",
     "axios": "^1.8.4",
+    "graphql": "^16.11.0",
+    "graphql-ws": "^6.0.5",
     "neverthrow": "^8.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

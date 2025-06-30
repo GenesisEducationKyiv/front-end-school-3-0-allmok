@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useMutation } from '@apollo/client';
 import toast from 'react-hot-toast';
 
@@ -12,18 +12,17 @@ import {
 import { GET_TRACKS } from '../../../../graphql/queries';
 import { useModalStore } from '../../../../stores/useModalStore';
 import { useSelectionStore } from '../../../../stores/useSelectionStore';
-import { NewTrackData, UpdateTrackData, Track } from '../../../../types/track';
-import { useApiParams } from './useFilters'; 
+import { NewTrackData, UpdateTrackData } from '../../../../types/track';
+import { useApiParams } from './useFilters';
+import { FileUploadService } from '../../../../stores/fileUploadStore';
 
 export type MutationLoadingState = ReturnType<typeof useTrackMutations>['mutationState'];
-
 
 export const useTrackMutations = () => {
   const closeModal = useModalStore(s => s.closeModal);
   const clearSelection = useSelectionStore(s => s.clearSelection);
-
-
   const apiParams = useApiParams();
+  const fileUploadService = FileUploadService.getInstance();
 
   const handleError = (error: Error, context: string) => {
     const errorMessage = `Failed to ${context}: ${error.message}`;
@@ -31,12 +30,10 @@ export const useTrackMutations = () => {
     console.error(`Error during ${context}:`, error);
   };
 
-
   const refetchQueriesOptions = {
     refetchQueries: [{ query: GET_TRACKS, variables: { input: apiParams } }],
     awaitRefetchQueries: true, 
   };
-
 
   const [createTrackMutation, { loading: isCreating }] = useMutation(CREATE_TRACK, {
     ...refetchQueriesOptions,
@@ -87,47 +84,32 @@ export const useTrackMutations = () => {
     onError: (error) => handleError(error, 'bulk delete tracks'),
   });
 
-
   const [isFileUploading, setIsFileUploading] = useState(false);
 
   /**
-   * @param id 
-   * @param file 
+   * @param id
+   * @param file
    */
   const uploadFile = async (id: string, file: File) => {
     if (!id) {
       handleError(new Error("Track ID is missing"), 'upload file');
       return;
     }
+
     setIsFileUploading(true);
+    
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await fetch('http://localhost:8000/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'File upload failed on the server.');
-      }
-
-      const result = await response.json();
-      const { filename } = result;
-
+      const result = await fileUploadService.uploadFile(file);
+      
       await updateTrackMutation({
-        variables: { id, input: { audioFile: filename } },
+        variables: { id, input: { audioFile: result.filename } },
       });
-
     } catch (error) {
       handleError(error as Error, 'upload file');
     } finally {
       setIsFileUploading(false);
     }
   };
-
 
   return {
     createTrack: (input: NewTrackData) => createTrackMutation({ variables: { input } }),

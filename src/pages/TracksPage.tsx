@@ -1,15 +1,20 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import Pagination from '../components/Pagination/Pagination';
 import LoadingIndicator from '../components/LoadingIndicator';
 import ErrorDisplay from '../features/tracks/components/ErrorDisplay';
 import { ActiveTrackDisplay } from '../components/ActiveTrackDisplay';
 import { TrackFilters } from '../features/tracks/components/TrackFilters';
 import { TrackList } from '../features/tracks/components/TrackList';
-import { TrackModals } from '../features/tracks/components/TrackModals';
+
 import { CreateTrackButton } from '../components/CreateTrackButton';
 import { useTracksPageController } from '../features/tracks/components/hooks/useTracksPageController';
 import { mapApolloErrorToAppError } from '../utils/helpers';
 import '../css/TracksPage.css';
+
+const TrackModals = React.lazy(() => 
+  import('../features/tracks/components/TrackModals')
+    .then(module => ({ default: module.TrackModals })) 
+);
 
 const TracksPage: React.FC = () => {
   const controller = useTracksPageController();
@@ -59,6 +64,7 @@ const TracksPage: React.FC = () => {
           onPageChange={controller.setPage}
         />
       )}
+      <Suspense fallback={<LoadingIndicator />}>
       <TrackModals
         activeModal={controller.activeModal}
         modalPayload={controller.modalPayload}
@@ -71,7 +77,8 @@ const TracksPage: React.FC = () => {
         onDelete={controller.deleteTrack}
         onUploadFile={controller.uploadFile}
         onDeleteFile={controller.deleteFile}
-      />
+        />
+    </Suspense>
     </div>
   );
 };

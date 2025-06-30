@@ -18,7 +18,7 @@ interface TrackItemProps {
   onGenreRemove: (trackId: string, genreToRemove: string) => void;
 }
 
-const API_FILES_BASE_URL = 'http://localhost:8000/api/files/';
+const API_FILES_BASE_URL = import.meta.env.VITE_API_FILES_BASE_URL;
 
 const TrackItem: React.FC<TrackItemProps> = ({
   trackToUpload,

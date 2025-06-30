@@ -8,7 +8,8 @@ import {
   import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
   import { createClient as createWsClient } from 'graphql-ws';
   
-  const BACKEND_URL = 'localhost:8000';
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+  
   
   const httpLink = createHttpLink({
     uri: `http://${BACKEND_URL}/graphql`,

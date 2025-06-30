@@ -4,6 +4,7 @@ import GenreTag from '../../../components/GenreTag/GenreTag';
 import defaultCover from '../../../assets/default-cover.jpg';
 import { useAudioPlayer } from '../../../contexts/AudioPlayerContext';
 import { useWaveSurfer } from '../../tracks/components/hooks/useWaveSurfer';
+import { getAbsoluteFileUrl } from '../../../utils/url';
 
 
 import '../../../css/TrackItem.css';
@@ -19,7 +20,7 @@ interface TrackItemProps {
   onGenreRemove: (trackId: string, genreToRemove: string) => void;
 }
 
-const API_FILES_BASE_URL = import.meta.env.VITE_API_FILES_BASE_URL;
+
 
 const TrackItem: React.FC<TrackItemProps> = ({
   trackToUpload,
@@ -35,7 +36,7 @@ const TrackItem: React.FC<TrackItemProps> = ({
 
   const isThisTrackPlayingGlobally = playingTrackId === trackToUpload.id && isPlaying;
   const imageUrl = trackToUpload.coverImage || defaultCover;
-  const fullAudioUrl = trackToUpload.audioFile ? API_FILES_BASE_URL + trackToUpload.audioFile : null;
+  const fullAudioUrl = getAbsoluteFileUrl(trackToUpload.audioFile);
 
   const {
     waveformContainerRef,

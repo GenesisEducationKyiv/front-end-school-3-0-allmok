@@ -2,49 +2,17 @@
 
 A single-page application built with React and Vite for managing a personal music track library. It interacts with a provided Node.js backend API to perform CRUD operations, upload audio files, and manage track metadata.
 
-## ✨ Features
-
-*   **Track Listing:** View all tracks in a paginated list on the main page (`/tracks`).
-*   **Create Track:** Add new tracks with metadata (title, artist, album, cover image URL, genres) via a modal form.
-    *   **Genre Management:** Fetch available genres from the API, display selected genres as tags with removal functionality, and add new genres from the available list.
-    *   Client-side validation for required fields and cover image URL format.
-*   **Edit Track:** Modify existing track metadata in a pre-filled modal form. Changes are saved to the API.
-*   **Delete Track:** Remove tracks individually with a confirmation dialog.
-*   **Audio File Upload:** Upload audio files (MP3, WAV, OGG) for existing tracks in a separate modal. Includes validation for file type and size, and an audio preview.
-*   **Audio File Deletion:** Remove the associated audio file from a track (metadata remains) with a confirmation dialog.
-*   **Audio Playback:**
-    *   Play uploaded audio files directly within the track list using WaveSurfer.js.
-    *   Only one track plays at a time.
-    *   Visual waveform display for playing/loaded tracks.
-*   **List Interaction:**
-    *   **Pagination:** Navigate through large track lists.
-    *   **Sorting:** Sort tracks by creation date, title, artist, or album (ascending/descending).
-    *   **Filtering:** Filter tracks by genre or artist using dropdowns.
-    *   **Search:** Search tracks by title, artist, or album with debouncing for performance.
-*   **Bulk Actions:**
-    *   Select multiple tracks using checkboxes.
-    *   Delete selected tracks in a single operation with confirmation.
-*   **User Experience:**
-    *   All create/edit/upload/delete operations happen in **modals** without leaving the main track list view.
-    *   **Loading Indicators:** Visual feedback during API requests and data loading.
-    *   **Toast Notifications:** Clear feedback for successful operations and errors using `react-hot-toast`.
-    *   **Optimistic UI Updates:** Edit, Delete, Delete File, and Bulk Delete operations update the UI instantly for a smoother experience, with rollback on API error.
-*   **Styling:** Clean, dark-themed UI with styles organized in a dedicated `src/css` folder.
+![The main screen of the application](./src/assets/tracks.jpg)
 
 ## 🚀 Tech Stack
 
 *   **Frontend:** React 18, Vite, TypeScript
-*   **API Communication:** Axios
-*   **State Management:** React Context API (for Audio Player), Component State (`useState`, `useReducer` patterns via custom hooks)
+*   **API:** Apollo Client 
+*   **Protocol:** GraphQL (Queries, Mutations, Subscriptions)
 *   **Audio:** WaveSurfer.js (for playback and visualization)
 *   **UI/UX:** Modals, `react-hot-toast` (notifications), Custom Hooks, CSS
 *   **Development:** NodeJS (v20.13.1 required), npm
-
-## 🔧 Prerequisites
-
-*   **Node.js:** Version `v20.13.1` is required (as specified in the requirements).
-*   **npm:** Should be installed with Node.js.
-*   **Backend API Server:** The provided Node.js backend server must be running.
+*   **Global state:** Zustand (for UI state: modal windows, selections)
 
 ## ⚙️ Getting Started
 
@@ -62,17 +30,15 @@ npm start
 4. **Open the application:**
     Navigate to `http://localhost:3000` in your browser.
     
-## 🧪 Running Tests
+## The .env example is located in .env.example
 
-*  Run all tests in watch mode:
-```bash
-npm test
-```
+## 📜 Available scripts
 
-* Run all tests with a UI:
-```bash
-npm run test:ui
-```
+* `npm run dev`: Starts the development server with Hot-Reload.
+* `npm run build`: Builds the application for production in the `dist` folder.
+* `npm run preview`: Starts a local server to preview the production build.
+* `npm run lint`: Runs code inspection using ESLint.
+* `npm test`: (Add, if any) Runs tests.
 
 ## 🎉 Features Implemented
 

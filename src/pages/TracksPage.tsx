@@ -1,6 +1,4 @@
 import React from 'react';
-import { ApolloError } from '@apollo/client';
-
 import Pagination from '../components/Pagination/Pagination';
 import LoadingIndicator from '../components/LoadingIndicator';
 import ErrorDisplay from '../features/tracks/components/ErrorDisplay';
@@ -8,12 +6,9 @@ import { ActiveTrackDisplay } from '../components/ActiveTrackDisplay';
 import { TrackFilters } from '../features/tracks/components/TrackFilters';
 import { TrackList } from '../features/tracks/components/TrackList';
 import { TrackModals } from '../features/tracks/components/TrackModals';
-import { CreateTrackButton } from '../components/CreateTrackButton'; 
-
+import { CreateTrackButton } from '../components/CreateTrackButton';
 import { useTracksPageController } from '../features/tracks/components/hooks/useTracksPageController';
-
-
-import { AppError } from '../types/errors';
+import { mapApolloErrorToAppError } from '../utils/helpers';
 import '../css/TracksPage.css';
 
 const TracksPage: React.FC = () => {
@@ -24,11 +19,6 @@ const TracksPage: React.FC = () => {
   }
 
   if (controller.error) {
-    const mapApolloErrorToAppError = (apolloError: ApolloError): AppError => ({
-      type: 'UnknownError',
-      message: apolloError.message,
-      originalError: apolloError,
-    });
     return <ErrorDisplay error={mapApolloErrorToAppError(controller.error)} onRetry={controller.refetch} />;
   }
 
@@ -36,18 +26,15 @@ const TracksPage: React.FC = () => {
     <div className="tracks-page">
       <ActiveTrackDisplay />
       <h1 data-testid="tracks-header">Tracks</h1>
-
       <TrackFilters
         availableGenres={controller.availableGenres}
         uniqueArtists={controller.uniqueArtists}
         disabled={controller.isBusy}
       />
-
       <CreateTrackButton
         onClick={() => controller.openModal('createTrack')}
         disabled={controller.isBusy}
       />
-
       <TrackList
         trackToUpload={controller.tracks}
         isLoading={controller.isLoading}
@@ -65,7 +52,6 @@ const TracksPage: React.FC = () => {
         onBulkDelete={controller.handleBulkDelete}
         isBulkDeleting={controller.mutationState.isBulkDeleting}
       />
-
       {controller.meta && controller.meta.totalPages > 1 && (
         <Pagination
           currentPage={controller.page}
@@ -73,7 +59,6 @@ const TracksPage: React.FC = () => {
           onPageChange={controller.setPage}
         />
       )}
-
       <TrackModals
         activeModal={controller.activeModal}
         modalPayload={controller.modalPayload}

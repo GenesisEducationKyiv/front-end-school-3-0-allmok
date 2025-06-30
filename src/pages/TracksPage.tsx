@@ -1,180 +1,76 @@
-import React, { useMemo, useCallback } from "react";
-
-import {
-  useTracksQuery,
-  useGenresQuery,
-} from "../features/tracks/components/hooks/useTracksQuery";
-import { useTrackMutations } from "../features/tracks/components/hooks/useTrackMutations";
-import { useFilterStore } from "../features/tracks/components/hooks/useFilters";
-import { useModalStore } from "../stores/useModalStore";
-import { useSelectionStore } from "../stores/useSelectionStore";
-
-import Pagination from "../components/Pagination/Pagination";
-import { TrackFilters } from "../features/tracks/components/TrackFilters";
-import { TrackList } from "../features/tracks/components/TrackList";
-import { TrackModals } from "../features/tracks/components/TrackModals";
-import LoadingIndicator from "../components/LoadingIndicator";
-import ErrorDisplay from "../features/tracks/components/ErrorDisplay";
-
-import { Track } from "../types/track";
-
-import "../css/TracksPage.css";
+import React from 'react';
+import Pagination from '../components/Pagination/Pagination';
+import LoadingIndicator from '../components/LoadingIndicator';
+import ErrorDisplay from '../features/tracks/components/ErrorDisplay';
+import { ActiveTrackDisplay } from '../components/ActiveTrackDisplay';
+import { TrackFilters } from '../features/tracks/components/TrackFilters';
+import { TrackList } from '../features/tracks/components/TrackList';
+import { TrackModals } from '../features/tracks/components/TrackModals';
+import { CreateTrackButton } from '../components/CreateTrackButton';
+import { useTracksPageController } from '../features/tracks/components/hooks/useTracksPageController';
+import { mapApolloErrorToAppError } from '../utils/helpers';
+import '../css/TracksPage.css';
 
 const TracksPage: React.FC = () => {
-  const {
-    data: tracksData,
-    isLoading,
-    isError,
-    error,
-    isFetching,
-    refetch,
-  } = useTracksQuery();
+  const controller = useTracksPageController();
 
-  const { data: availableGenres = [] } = useGenresQuery();
-
-  const {
-    createTrack,
-    updateTrack,
-    deleteTrack,
-    bulkDelete,
-    uploadFile,
-    deleteFile,
-    mutationState,
-  } = useTrackMutations();
-
-  const { setPage, page } = useFilterStore();
-  const { activeModal, payload, openModal, closeModal } = useModalStore();
-  const { selectedIds, toggleId, selectAll, clearSelection } =
-    useSelectionStore();
-
-  const tracks = tracksData?.tracks ?? [];
-  const meta = tracksData?.meta;
-
-  const uniqueArtists = useMemo(() => {
-    return [...new Set(tracks.map((t) => t.artist))].sort();
-  }, [tracks]);
-
-  const findTrackById = useCallback(
-    (id: string | null | undefined): Track | null => {
-      return id ? tracks.find((t) => t.id === id) ?? null : null;
-    },
-    [tracks]
-  );
-
-  const handleGenreRemove = useCallback(
-    (trackId: string, genreToRemove: string) => {
-      const track = findTrackById(trackId);
-      if (!track) return;
-
-      const updatedGenres = track.genres.filter((g) => g !== genreToRemove);
-      updateTrack({ id: trackId, trackData: { genres: updatedGenres } });
-    },
-    [findTrackById, updateTrack]
-  );
-
-  const isBusy = isFetching || mutationState.isAnyLoading;
-
-  if (isLoading) {
+  if (controller.isLoading && controller.tracks.length === 0) {
     return <LoadingIndicator />;
   }
 
-  if (isError && error) {
-    return <ErrorDisplay error={error} onRetry={() => refetch()} />;
+  if (controller.error) {
+    return <ErrorDisplay error={mapApolloErrorToAppError(controller.error)} onRetry={controller.refetch} />;
   }
 
   return (
     <div className="tracks-page">
+      <ActiveTrackDisplay />
       <h1 data-testid="tracks-header">Tracks</h1>
-
       <TrackFilters
-        availableGenres={availableGenres}
-        uniqueArtists={uniqueArtists}
-        disabled={isBusy}
+        availableGenres={controller.availableGenres}
+        uniqueArtists={controller.uniqueArtists}
+        disabled={controller.isBusy}
       />
-
-      <button
-        className="fab-create-track"
-        onClick={() => openModal("createTrack")}
-        disabled={isBusy}
-        data-testid="create-track-button"
-        title="Create new track"
-        data-loading={isBusy}
-        aria-disabled={isBusy}
-      >
-        <span className="fab-icon" aria-hidden="true">
-          +
-        </span>
-        <span className="fab-text">Add Track</span>
-      </button>
-
+      <CreateTrackButton
+        onClick={() => controller.openModal('createTrack')}
+        disabled={controller.isBusy}
+      />
       <TrackList
-        tracks={tracks}
-        isLoading={isFetching}
-        selectedTrackIds={selectedIds}
+        trackToUpload={controller.tracks}
+        isLoading={controller.isLoading}
+        selectedTrackIds={controller.selectedIds}
         selectionProps={{
-          handleSelectToggle: toggleId,
-          handleSelectAllClick: () => {
-            const allIds = tracks.map((t) => t.id);
-            const isAllSelected =
-              tracks.length > 0 && selectedIds.size === tracks.length;
-            isAllSelected ? clearSelection() : selectAll(allIds);
-          },
-          isAllSelected:
-            tracks.length > 0 && selectedIds.size === tracks.length,
+          handleSelectToggle: controller.toggleId,
+          handleSelectAllClick: controller.handleSelectAllClick,
+          isAllSelected: controller.isAllSelected,
         }}
-        onEdit={(id) => openModal("editTrack", { trackId: id })}
-        onDelete={(id) => openModal("deleteTrack", { trackId: id })}
-        onUpload={(id) => openModal("uploadTrackFile", { trackId: id })}
-        onDeleteFile={(id) => openModal("deleteTrackFile", { trackId: id })}
-        onGenreRemove={handleGenreRemove}
-        onBulkDelete={() => bulkDelete(Array.from(selectedIds))}
-        isBulkDeleting={mutationState.isBulkDeleting}
-        mutationState={mutationState}
-        onSelectTrack={function (): void {
-          throw new Error("Function not implemented.");
-        }}
-        onSelectAll={function (): void {
-          throw new Error("Function not implemented.");
-        }}
-        onClearSelection={function (): void {
-          throw new Error("Function not implemented.");
-        }}
-        isAllSelected={false}
+        onEdit={(id) => controller.openModal('editTrack', { trackId: id })}
+        onDelete={(id) => controller.openModal('deleteTrack', { trackId: id })}
+        onUpload={(id) => controller.openModal('uploadTrackFile', { trackId: id })}
+        onDeleteFile={(id) => controller.openModal('deleteTrackFile', { trackId: id })}
+        onGenreRemove={controller.handleGenreRemove}
+        onBulkDelete={controller.handleBulkDelete}
+        isBulkDeleting={controller.mutationState.isBulkDeleting}
       />
-
-      {meta && meta.totalPages > 1 && (
+      {controller.meta && controller.meta.totalPages > 1 && (
         <Pagination
-          currentPage={page}
-          totalPages={meta.totalPages}
-          onPageChange={setPage}
+          currentPage={controller.page}
+          totalPages={controller.meta.totalPages}
+          onPageChange={controller.setPage}
         />
       )}
       <TrackModals
-        activeModal={activeModal}
-        modalPayload={payload}
-        closeModal={closeModal}
-        findTrackById={findTrackById}
-        availableGenres={availableGenres}
-        mutationLoading={{
-          isCreating: mutationState.isCreating,
-          isUpdating: mutationState.isUpdating,
-          isDeleting: mutationState.isDeleting,
-          isUploading: mutationState.isUploading,
-          isDeletingFile: mutationState.isDeletingFile,
-          isBulkDeleting: mutationState.isBulkDeleting,
-          isAnyLoading: mutationState.isAnyLoading,
-        }}
-        onCreate={async (data) => {
-          await createTrack(data);
-        }}
-        onUpdate={async (id, data) => updateTrack({ id, trackData: data })}
-        onDelete={async (trackId: string) => {
-          await deleteTrack(trackId);
-        }}
-        onUploadFile={async (id, file) => uploadFile({ id, file })}
-        onDeleteFile={async (trackId: string) => {
-          await deleteFile(trackId);
-        }}
+        activeModal={controller.activeModal}
+        modalPayload={controller.modalPayload}
+        closeModal={controller.closeModal}
+        findTrackById={controller.findTrackById}
+        availableGenres={controller.availableGenres}
+        mutationLoading={controller.mutationState}
+        onCreate={controller.createTrack}
+        onUpdate={controller.updateTrack}
+        onDelete={controller.deleteTrack}
+        onUploadFile={controller.uploadFile}
+        onDeleteFile={controller.deleteFile}
       />
     </div>
   );

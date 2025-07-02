@@ -36,7 +36,6 @@ export const useWaveSurfer = ({
       return;
     }
 
-    console.log(`[useWaveSurfer ${trackId}] Creating WS instance for URL: ${audioUrl}`);
     setError(null);
     setIsReady(false);
 
@@ -53,7 +52,6 @@ export const useWaveSurfer = ({
     wavesurferRef.current = ws;
 
     const handleReady = () => {
-      console.log(`[useWaveSurfer ${trackId}] WS Ready.`);
       setIsReady(true);
     };
 
@@ -64,7 +62,6 @@ export const useWaveSurfer = ({
     };
 
     const handleFinish = () => {
-      console.log(`[useWaveSurfer ${trackId}] WS Finished.`);
       onFinish(trackId);
     };
 
@@ -73,7 +70,6 @@ export const useWaveSurfer = ({
     ws.on('finish', handleFinish);
 
     return () => {
-      console.log(`[useWaveSurfer ${trackId}] Destroying WS instance.`);
       ws.un('ready', handleReady);
       ws.un('error', handleError);
       ws.un('finish', handleFinish);
@@ -90,12 +86,10 @@ export const useWaveSurfer = ({
 
     if (isPlaying) {
       if (!ws.isPlaying()) {
-        console.log(`[useWaveSurfer ${trackId}] Received PLAY command from context.`);
         ws.play().catch(e => console.error(`[useWaveSurfer ${trackId}] Error on context play():`, e));
       }
     } else {
       if (ws.isPlaying()) {
-        console.log(`[useWaveSurfer ${trackId}] Received PAUSE command from context.`);
         ws.pause();
       }
     }

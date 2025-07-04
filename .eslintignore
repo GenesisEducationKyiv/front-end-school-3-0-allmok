@@ -1,0 +1,7 @@
+dist/
+
+playwright/.cache/
+
+playwright-report/
+
+node_modules/

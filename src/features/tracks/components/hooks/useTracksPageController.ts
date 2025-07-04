@@ -46,7 +46,7 @@ export const useTracksPageController = () => {
   const handleGenreRemove = useCallback(
     (trackId: string, genreToRemove: string) => {
       const track = findTrackById(trackId);
-      if (!track || !track.genres) return;
+      if (!track?.genres) return;
       const updatedGenres = track.genres.filter((g) => g !== genreToRemove);
       updateTrack(trackId, { genres: updatedGenres });
     },

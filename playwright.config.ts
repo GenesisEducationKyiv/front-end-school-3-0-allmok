@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { defineConfig, devices } from '@playwright/test';
 
-const baseURL = process.env.BASE_URL;
+const baseURL = process.env.BASE_URL || 'http://localhost:3000';
 
 export default defineConfig({
   testDir: './e2e',
@@ -27,5 +27,8 @@ export default defineConfig({
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
+  env: {
+    VITE_API_URL: 'http://localhost:8000/api',
   },
+},
 });

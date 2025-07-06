@@ -55,6 +55,8 @@ jobs:
         continue-on-error: true
 
       - name: Run E2E tests
+        env:
+          BASE_URL: ${{ secrets.BASE_URL }}
         run: npx playwright test
 
       - name: Upload E2E test artifacts
@@ -68,6 +70,8 @@ jobs:
           retention-days: 30
 
       - name: Build project
+        env:
+          BASE_URL: ${{ secrets.BASE_URL }}
         run: npm run build
 
       - name: Upload build artifacts

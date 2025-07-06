@@ -39,7 +39,7 @@ const TrackItem: React.FC<TrackItemProps> = ({
 
   const isThisTrackPlayingGlobally =
     playingTrackId === trackToUpload.id && isPlaying;
-  const imageUrl = trackToUpload.coverImage || defaultCover;
+  const imageUrl = trackToUpload.coverImage ?? defaultCover;
   const fullAudioUrl = getAbsoluteFileUrl(trackToUpload.audioFile);
 
   const {

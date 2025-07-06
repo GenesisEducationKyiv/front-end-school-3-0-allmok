@@ -18,6 +18,12 @@ export default [
       "vite.config.ts",
       "postcss.config.js",
       "tailwind.config.js", 
+      "dist/",
+      "build/",
+      "node_modules/",
+      "playwright/.cache/",
+      "playwright-report/",
+      "test-results/"
     ],
   },
 

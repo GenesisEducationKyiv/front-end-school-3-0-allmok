@@ -4,9 +4,13 @@ export interface UploadResponse {
   filename: string;
 }
 
+interface ApiErrorResponse {
+  error: string;
+}
+
 export class FileUploadService {
   private static instance: FileUploadService;
-
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   private constructor() {}
 
   public static getInstance(): FileUploadService {
@@ -26,10 +30,19 @@ export class FileUploadService {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || 'File upload failed on the server.');
+      let errorMessage = 'File upload failed on the server.';
+      try {
+        const errorData = await response.json() as ApiErrorResponse;
+        
+        if (typeof errorData.error === 'string') {
+          errorMessage = errorData.error;
+        }
+      } catch (e) {
+        console.error('Failed to parse error response as JSON:', e);
+      }
+      throw new Error(errorMessage);
     }
 
-    return await response.json();
+    return await response.json() as UploadResponse;
   }
 }

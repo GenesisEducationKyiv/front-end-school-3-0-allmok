@@ -7,10 +7,17 @@ export const MetaSchema = z.object({
   totalPages: z.number().int().min(0),
 });
 
+export interface BulkDeleteResponse {
+  deleteTracks: { 
+    success: string[];
+    failed: string[];
+  };
+}
+
+
 
 export const TrackSchema = z.object({
   id: z.string(),  
-
   title: z.string().min(1, { message: "Track name is required" }),
   artist: z.string().min(1, { message: "Artist name is required" }),
   album: z.string().optional(),
@@ -23,18 +30,15 @@ export const TrackSchema = z.object({
   duration: z.number().int().positive().optional(),
 });
 
-
 export const TracksApiResponseSchema = z.object({
   data: z.array(TrackSchema),
   meta: MetaSchema,
 });
 
-
 export const BulkDeleteResponseSchema = z.object({
   success: z.array(z.string()), 
   failed: z.array(z.string()),
 });
-
 
 export const NewTrackDataSchema = z.object({
   title: TrackSchema.shape.title,
@@ -44,16 +48,15 @@ export const NewTrackDataSchema = z.object({
   coverImage: TrackSchema.shape.coverImage,
 });
 
-
 export const UpdateTrackDataSchema = NewTrackDataSchema.partial();
-
 
 export type Meta = z.infer<typeof MetaSchema>;
 export type Track = z.infer<typeof TrackSchema>;
 export type TracksApiResponse = z.infer<typeof TracksApiResponseSchema>;
-export type BulkDeleteResponse = z.infer<typeof BulkDeleteResponseSchema>;
 export type NewTrackData = z.infer<typeof NewTrackDataSchema>;
 export type UpdateTrackData = z.infer<typeof UpdateTrackDataSchema>;
+
+
 
 
 export const GetTracksResponseSchema = z.object({
@@ -63,3 +66,14 @@ export const GetTracksResponseSchema = z.object({
 export type GetTracksResponse = z.infer<typeof GetTracksResponseSchema>;
 
 export const GenresSchema = z.array(z.string());
+
+export interface GetTracksQueryData {
+  tracks: {
+    data: Track[];
+    meta: Meta;
+  };
+}
+
+export interface GetGenresQueryData {
+  genres: string[];
+}

@@ -6,7 +6,7 @@ interface LoadingIndicatorProps {
 
 const LoadingIndicator: React.FC<LoadingIndicatorProps> = (props) => {
   return (
-    <div className="loading-spinner" data-testid={props['data-testid'] || "loading-indicator"}>
+    <div className="loading-spinner" data-testid={props['data-testid'] ?? "loading-indicator"}>
       loading...
     </div>
   );

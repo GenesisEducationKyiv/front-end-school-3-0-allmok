@@ -93,11 +93,11 @@ const TrackForm: React.FC<TrackFormProps> = ({
   isLoading = false,
 }) => {
   const [formData, setFormData] = useState({
-    title: initialData.title || '',
-    artist: initialData.artist || '',
-    album: initialData.album || '',
-    coverImage: initialData.coverImage || '',
-    genres: initialData.genres || [],
+    title: initialData.title ?? '',
+    artist: initialData.artist ?? '',
+    album: initialData.album ?? '',
+    coverImage: initialData.coverImage ?? '',
+    genres: initialData.genres ?? [],
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -106,8 +106,8 @@ const TrackForm: React.FC<TrackFormProps> = ({
     const formDataToValidate = {
       title: formData.title.trim(),
       artist: formData.artist.trim(),
-      album: formData.album.trim() || undefined, 
-      coverImage: formData.coverImage.trim() || undefined, 
+      album: formData.album.trim() ?? undefined, 
+      coverImage: formData.coverImage.trim() ?? undefined, 
       genres: formData.genres,
     };
 
@@ -140,7 +140,7 @@ const TrackForm: React.FC<TrackFormProps> = ({
     setFormData(prev => ({ ...prev, genres }));
     if (errors.genres) {
       setErrors(prev => {
-        const { genres, ...rest } = prev;
+        const { genres: _genres, ...rest  } = prev;
         return rest;
       });
     }
@@ -165,11 +165,11 @@ const TrackForm: React.FC<TrackFormProps> = ({
   useEffect(() => {
     console.log("TrackForm useEffect triggered with initialData:", initialData);
     setFormData({
-      title: initialData.title || '',
-      artist: initialData.artist || '',
-      album: initialData.album || '',
-      coverImage: initialData.coverImage || '',
-      genres: initialData.genres || [],
+      title: initialData.title ?? '',
+      artist: initialData.artist ?? '',
+      album: initialData.album ?? '',
+      coverImage: initialData.coverImage ?? '',
+      genres: initialData.genres ?? [],
     });
     setErrors({});
   }, [

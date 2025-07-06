@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useFilterStore, Filters } from './useFilters';
 
-const cleanObject = <T extends Record<string, any>>(obj: T): Partial<T> => {
+const cleanObject = <T extends Record<string, unknown>>(obj: T): Partial<T> => {
   const newObj: Partial<T> = {};
   for (const key in obj) {
     if (obj[key] !== '' && obj[key] !== undefined && obj[key] !== null) {
@@ -15,45 +15,60 @@ const cleanObject = <T extends Record<string, any>>(obj: T): Partial<T> => {
 
 export function useFilterUrlSync() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const store = useFilterStore();
+  const location = useLocation() as { pathname: string; search: string; state: unknown };
+  
+  const filters = useFilterStore(state => ({
+    page: state.page,
+    sort: state.sort,
+    order: state.order,
+    search: state.search,
+    genre: state.genre,
+    artist: state.artist,
+  }));
+  const setFiltersFromUrl = useFilterStore(state => state.setFiltersFromUrl);
+  
   const isInitialized = useRef(false);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const urlFilters: Partial<Record<keyof Filters, string | number>> = {};
+    const urlFilters: Partial<Filters> = {};
+
+    const search = params.get('search');
+    if (search) urlFilters.search = search;
+
+    const sort = params.get('sort');
+    if (sort) urlFilters.sort = sort;
+
+    const order = params.get('order');
+    if (order === 'asc' || order === 'desc') urlFilters.order = order;
     
-    const stringKeys: (keyof Filters)[] = ['sort', 'order', 'search', 'genre', 'artist'];
-    const numberKeys: (keyof Filters)[] = ['page', 'limit'];
+    const genre = params.get('genre');
+    if (genre) urlFilters.genre = genre;
+    
+    const artist = params.get('artist');
+    if (artist) urlFilters.artist = artist;
 
-    stringKeys.forEach(key => {
-      if (params.has(key)) {
-        urlFilters[key] = params.get(key)!;
-      }
-    });
+    const page = params.get('page');
+    if (page && !isNaN(Number(page))) urlFilters.page = Number(page);
 
-    numberKeys.forEach(key => {
-      if (params.has(key)) {
-        urlFilters[key] = Number(params.get(key));
-      }
-    });
+    const limit = params.get('limit');
+    if (limit && !isNaN(Number(limit))) urlFilters.limit = Number(limit);
 
-    store.setFiltersFromUrl(urlFilters as Partial<Filters>);
+    setFiltersFromUrl(urlFilters);
     isInitialized.current = true;
-  }, []);
+    
+  }, [location.search, setFiltersFromUrl]);
 
   useEffect(() => {
     if (!isInitialized.current) {
       return;
     }
-
-    const { page, sort, order, search, genre, artist } = store;
-    const currentFilters = { page, sort, order, search, genre, artist };
-    const cleanedFilters = cleanObject(currentFilters);
+    
+    const cleanedFilters = cleanObject(filters);
     const newSearch = new URLSearchParams(cleanedFilters as Record<string, string>).toString();
 
     if (newSearch !== location.search.substring(1)) {
-      navigate({ search: newSearch }, { replace: true, state: location.state });
+      void navigate({ search: newSearch }, { replace: true, state: location.state });
     }
-  }, [store.page, store.sort, store.order, store.search, store.genre, store.artist, navigate, location]);
+  }, [filters, navigate, location.state, location.search]);
 }

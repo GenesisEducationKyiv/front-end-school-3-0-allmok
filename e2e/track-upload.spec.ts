@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
+import type { Track } from '../src/types/track';
 
-const mockTracksList = [
+const mockTracksList: Partial<Track>[] = [
   { 
       id: '1', 
       title: 'Living in a Ghost Town', 
@@ -29,8 +30,8 @@ const mockTracksList = [
 
 test.describe('Full Track Management Flow', () => {
   test.beforeEach(async ({ page }) => {
-      await page.route('**/api/tracks**', (route) => {
-          route.fulfill({
+      await page.route('**/api/tracks**', async (route) => {
+          await route.fulfill({
               status: 200,
               contentType: 'application/json',
               body: JSON.stringify({
@@ -47,7 +48,7 @@ test.describe('Full Track Management Flow', () => {
         
         await page.route('**/api/tracks/1/upload', async (route) => {
             const updatedTrack = { ...mockTracksList[0], audioFile: 'ghost_town_uploaded.mp3' };
-            route.fulfill({ status: 200, body: JSON.stringify(updatedTrack) });
+            await route.fulfill({ status: 200, body: JSON.stringify(updatedTrack) });
         });
     });
 

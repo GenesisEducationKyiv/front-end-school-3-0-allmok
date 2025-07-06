@@ -43,7 +43,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, 'data-testid':
     <div
       className="modal-overlay"
       onClick={handleOverlayClick}
-      data-testid={dataTestId || "modal-overlay"} 
+      data-testid={dataTestId ?? "modal-overlay"} 
       aria-modal="true"
       role="dialog"
     >

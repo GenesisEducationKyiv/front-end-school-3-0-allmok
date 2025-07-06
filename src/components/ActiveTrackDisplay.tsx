@@ -17,8 +17,18 @@ const containerStyle: React.CSSProperties = {
   lineHeight: '1.2',
 };
 
+interface ActiveTrackSubscriptionData {
+  activeTrackChanged: {
+    id: string;
+    title: string;
+    artist: string;
+  };
+}
+
 export const ActiveTrackDisplay: React.FC = () => {
-  const { data, loading, error } = useSubscription(ACTIVE_TRACK_SUBSCRIPTION);
+  const { data, loading, error } = useSubscription<ActiveTrackSubscriptionData>(
+    ACTIVE_TRACK_SUBSCRIPTION
+  );
 
   if (loading) {
     return <div style={containerStyle}>Connecting...</div>;
@@ -29,11 +39,13 @@ export const ActiveTrackDisplay: React.FC = () => {
     return <div style={containerStyle}>Error subscribing!</div>;
   }
 
+  const trackInfo = data?.activeTrackChanged;
+
   return (
     <div style={containerStyle}>
       <strong>Live:</strong>{' '}
-      {data?.activeTrackChanged?.title
-        ? `${data.activeTrackChanged.title} - ${data.activeTrackChanged.artist}`
+      {trackInfo
+        ? `${trackInfo.title} - ${trackInfo.artist}`
         : 'Waiting for track...'}
     </div>
   );

@@ -39,6 +39,8 @@ npm start
 * `npm run preview`: Starts a local server to preview the production build.
 * `npm run lint`: Runs code inspection using ESLint.
 * `npm test`: (Add, if any) Runs tests.
+* `npx playwright test`: Run e2e test.
+* `npm run test:ct`: Run components tests.
 
 ## 🎉 Features Implemented
 

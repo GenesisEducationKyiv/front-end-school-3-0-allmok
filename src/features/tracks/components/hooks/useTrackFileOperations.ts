@@ -1,16 +1,31 @@
 import { useState } from 'react';
-import { useMutation } from '@apollo/client';
+import { useMutation, FetchResult } from '@apollo/client';
 import { DELETE_TRACK_FILE } from '../../../../graphql/mutations';
 import { FileUploadService } from '../../../../stores/fileUploadStore';
+import { UpdateTrackData } from '../../../../types/track';
+
+type UpdateTrackMutationFn = (
+  options: {
+    variables: {
+      id: string;
+      input: UpdateTrackData;
+    };
+  }
+) => Promise<FetchResult>; 
 
 interface FileOperationsOptions {
   refetchOptions: object;
   onSuccess: (message: string) => void;
   onError: (error: Error, context: string) => void;
-  updateTrackMutation: (options: any) => Promise<any>; 
+  updateTrackMutation: UpdateTrackMutationFn;
 }
 
-export const useTrackFileOperations = ({ refetchOptions, onSuccess, onError, updateTrackMutation }: FileOperationsOptions) => {
+export const useTrackFileOperations = ({ 
+  refetchOptions, 
+  onSuccess, 
+  onError, 
+  updateTrackMutation 
+}: FileOperationsOptions) => {
   const [isUploading, setIsUploading] = useState(false);
   const fileUploadService = FileUploadService.getInstance();
 

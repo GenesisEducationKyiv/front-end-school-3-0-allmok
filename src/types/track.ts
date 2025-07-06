@@ -48,7 +48,7 @@ export const NewTrackDataSchema = z.object({
   coverImage: TrackSchema.shape.coverImage,
 });
 
-export const UpdateTrackDataSchema = NewTrackDataSchema.partial();
+export const UpdateTrackDataSchema = TrackSchema.partial();
 
 export type Meta = z.infer<typeof MetaSchema>;
 export type Track = z.infer<typeof TrackSchema>;

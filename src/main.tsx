@@ -5,10 +5,16 @@ import { ApolloProvider } from '@apollo/client';
 import { client } from './graphql/apolloClient';
 
 import App from './App';
-import { AudioPlayerProvider } from './contexts/AudioPlayerContext';
+import { AudioPlayerProvider } from './contexts/AudioPlayerProvider';
 import './index.css';
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  throw new Error("Failed to find the root element. Check your index.html file.");
+}
+const root = ReactDOM.createRoot(rootElement);
+
+root.render(
   <React.StrictMode>
     <ApolloProvider client={client}>
       <AudioPlayerProvider>

@@ -2,7 +2,7 @@ import React, { useCallback, memo } from "react";
 import { Track } from "../../../types/track";
 import GenreTag from "../../../components/GenreTag/GenreTag";
 import defaultCover from "../../../assets/default-cover.jpg";
-import { useAudioPlayer } from "../../../contexts/AudioPlayerContext";
+import { useAudioPlayer } from "../../../features/tracks/components/hooks/useAudioPlayer";
 import { useWaveSurfer } from "../../tracks/components/hooks/useWaveSurfer";
 import { getAbsoluteFileUrl } from "../../../utils/url";
 

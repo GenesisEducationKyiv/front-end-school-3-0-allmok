@@ -172,14 +172,7 @@ const TrackForm: React.FC<TrackFormProps> = ({
       genres: initialData.genres ?? [],
     });
     setErrors({});
-  }, [
-    initialData?.id,
-    initialData?.title,
-    initialData?.artist,
-    initialData?.album,
-    initialData?.coverImage,
-    initialData?.genres
-  ]);
+  }, [initialData]);
 
   return (
     <form onSubmit={handleSubmit} data-testid="track-form" noValidate>

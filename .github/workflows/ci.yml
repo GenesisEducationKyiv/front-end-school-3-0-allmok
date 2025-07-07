@@ -1,5 +1,4 @@
 name: Frontend CI/CD Pipeline
-
 on:
   push:
     branches: ["main"]
@@ -9,16 +8,18 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    
+    env:
+      BASE_URL: ${{ secrets.BASE_URL }}
+      VITE_API_URL: ${{ secrets.VITE_API_URL }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-
+      
       - name: Cache node_modules
         uses: actions/cache@v3
         with:
@@ -26,22 +27,22 @@ jobs:
           key: ${{ runner.os }}-nodemodules-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-nodemodules-
-            
+      
       - name: Install dependencies
         run: npm ci
-
+      
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
-        
+      
       - name: Run linter
         run: npm run lint
-        
+      
       - name: Run type check
         run: npm run type-check
- 
+      
       - name: Run unit tests
         run: npm test
-
+      
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
         if: always()
@@ -49,17 +50,17 @@ jobs:
           name: coverage-reports
           path: coverage/
           retention-days: 30
-          
+      
       - name: Run component tests
         run: npm run test:ct
         continue-on-error: true
-
+      
       - name: Run E2E tests
         env:
           BASE_URL: ${{ secrets.BASE_URL }}
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: npx playwright test
-
+      
       - name: Upload E2E test artifacts
         uses: actions/upload-artifact@v4
         if: failure()
@@ -69,20 +70,20 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 30
-
+      
       - name: Build project
         env:
           BASE_URL: ${{ secrets.BASE_URL }}
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: npm run build
-
+      
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
           path: dist/
           retention-days: 30
-          
+      
       - name: Upload build logs
         uses: actions/upload-artifact@v4
         if: failure()
@@ -91,7 +92,7 @@ jobs:
           path: |
             npm-debug.log*
           retention-days: 30
-          
+      
       - name: Build Docker image
         uses: docker/build-push-action@v5
         with:

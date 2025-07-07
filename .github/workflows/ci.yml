@@ -55,10 +55,13 @@ jobs:
         run: npm run test:ct
         continue-on-error: true
       
+      - name: Create .env file for CI
+        run: |
+          echo "BASE_URL=${{ secrets.BASE_URL }}" >> .env
+          echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" >> .env
+          cat .env
+      
       - name: Run E2E tests
-        env:
-          BASE_URL: ${{ secrets.BASE_URL }}
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: npx playwright test
       
       - name: Upload E2E test artifacts

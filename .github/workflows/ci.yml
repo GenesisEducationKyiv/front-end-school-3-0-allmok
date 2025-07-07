@@ -57,6 +57,7 @@ jobs:
       - name: Run E2E tests
         env:
           BASE_URL: ${{ secrets.BASE_URL }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: npx playwright test
 
       - name: Upload E2E test artifacts
@@ -72,6 +73,7 @@ jobs:
       - name: Build project
         env:
           BASE_URL: ${{ secrets.BASE_URL }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: npm run build
 
       - name: Upload build artifacts

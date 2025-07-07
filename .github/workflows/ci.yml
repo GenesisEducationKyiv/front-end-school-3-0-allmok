@@ -57,8 +57,10 @@ jobs:
       
       - name: Create .env file for CI
         run: |
-          echo "BASE_URL=${{ secrets.BASE_URL }}" >> .env
+          echo "BASE_URL=${{ secrets.BASE_URL }}" > .env
           echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" >> .env
+          echo "CI=true" >> .env
+          echo "Created .env file with contents:"
           cat .env
       
       - name: Run E2E tests

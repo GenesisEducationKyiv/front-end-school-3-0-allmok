@@ -1,8 +1,8 @@
 import 'dotenv/config';
 import { defineConfig, devices } from '@playwright/test';
 
-const baseURL = process.env.BASE_URL;
-const apiBaseURL = process.env.VITE_API_URL;
+const baseURL = process.env.BASE_URL  || 'http://localhost:3000';
+const apiBaseURL = process.env.VITE_API_URL || 'http://localhost:8000';;
 
 if (!baseURL) {
   throw new Error('BASE_URL environment variable is required');

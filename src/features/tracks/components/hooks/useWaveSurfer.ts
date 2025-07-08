@@ -6,6 +6,7 @@ interface UseWaveSurferOptions {
   trackId: string;
   onFinish: (trackId: string) => void;
   isPlaying: boolean;
+  enabled?: boolean; 
 }
 
 interface UseWaveSurferReturn {
@@ -20,16 +21,18 @@ export const useWaveSurfer = ({
   audioUrl,
   trackId,
   onFinish,
-  isPlaying
+  isPlaying,
+  enabled = true,
 }: UseWaveSurferOptions): UseWaveSurferReturn => {
   const waveformContainerRef = useRef<HTMLDivElement>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  
   useEffect(() => {
-    if (!waveformContainerRef.current || !audioUrl) {
-      if (!audioUrl && trackId) {
+    if (!enabled || !waveformContainerRef.current || !audioUrl) {
+      if (!audioUrl && trackId && enabled) {
         console.error(`[useWaveSurfer ${trackId}] Invalid audio URL construction.`);
         setError("Invalid audio URL");
       }
@@ -77,7 +80,7 @@ export const useWaveSurfer = ({
       wavesurferRef.current = null;
       setIsReady(false);
     };
-  }, [trackId, audioUrl, onFinish]);
+  }, [trackId, audioUrl, onFinish, enabled]);
 
 
   useEffect(() => {

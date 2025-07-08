@@ -1,4 +1,10 @@
-import React, { useCallback, memo } from "react";
+import React, {
+  useCallback,
+  memo,
+  useState,
+  useRef,
+  useEffect,
+} from "react";
 import { Track } from "../../../types/track";
 import { useAudioPlayer } from "../../../features/tracks/components/hooks/useAudioPlayer";
 import { useWaveSurfer } from "../../tracks/components/hooks/useWaveSurfer";
@@ -32,6 +38,9 @@ const TrackItem: React.FC<TrackItemProps> = ({
   onSelectToggle,
   onGenreRemove,
 }) => {
+  const itemRef = useRef<HTMLDivElement | null>(null);
+  const [isIntersecting, setIsIntersecting] = useState(false);
+
   const {
     playingTrackId,
     isPlaying,
@@ -39,6 +48,35 @@ const TrackItem: React.FC<TrackItemProps> = ({
     requestPause,
     notifyTrackFinished,
   } = useAudioPlayer();
+
+  useEffect(() => {
+    const currentRef = itemRef.current; 
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsIntersecting(true);
+
+          if (currentRef) {
+            observer.unobserve(currentRef);
+          }
+        }
+      },
+      {
+        rootMargin: "200px",
+      }
+    );
+
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, []); 
 
   const isThisTrackPlayingGlobally =
     playingTrackId === trackToUpload.id && isPlaying;
@@ -53,6 +91,7 @@ const TrackItem: React.FC<TrackItemProps> = ({
     trackId: trackToUpload.id,
     onFinish: notifyTrackFinished,
     isPlaying: isThisTrackPlayingGlobally,
+    enabled: isIntersecting, 
   });
 
   const handleSelectChange = useCallback(
@@ -62,6 +101,7 @@ const TrackItem: React.FC<TrackItemProps> = ({
 
   return (
     <div
+      ref={itemRef} 
       className={`track-item ${isSelected ? "selected" : ""} ${
         isThisTrackPlayingGlobally ? "active" : ""
       }`}
@@ -114,7 +154,7 @@ const TrackItem: React.FC<TrackItemProps> = ({
           onGenreRemove={onGenreRemove}
         />
 
-        {trackToUpload.audioFile && (
+        {trackToUpload.audioFile && isIntersecting && (
           <TrackWaveform
             trackId={trackToUpload.id}
             waveformContainerRef={waveformContainerRef}

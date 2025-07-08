@@ -1,82 +1,139 @@
 import { test, expect } from '@playwright/test';
+import type { Track } from '../src/types/track';
 
-const mockTracksList = [
-  { 
-      id: '1', 
-      title: 'Living in a Ghost Town', 
-      artist: 'The Rolling Stones', 
-      album: 'Single',
-      genres: ['Rock'], 
-      duration: 247, 
-      audioFile: null, 
-      coverImage: null, 
-      createdAt: new Date().toISOString(), 
-      updatedAt: new Date().toISOString() 
+const mockTracksList: Partial<Track>[] = [
+  {
+    id: '1',
+    title: 'Living in a Ghost Town',
+    artist: 'The Rolling Stones',
+    album: 'Single',
+    genres: ['Rock'],
+    duration: 247,
+    audioFile: null,
+    coverImage: null,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
-  { 
-      id: '2', 
-      title: 'Blinding Lights', 
-      artist: 'The Weeknd',
-      album: 'After Hours',
-      genres: ['Synth-pop'], 
-      duration: 200, 
-      audioFile: 'blinding_lights.mp3', 
-      coverImage: 'http://localhost:8000/api/files/cover.jpg', 
-      createdAt: new Date().toISOString(), 
-      updatedAt: new Date().toISOString() 
-  }
+  {
+    id: '2',
+    title: 'Blinding Lights',
+    artist: 'The Weeknd',
+    album: 'After Hours',
+    genres: ['Synth-pop'],
+    duration: 200,
+    audioFile: 'blinding_lights.mp3',
+    coverImage: 'http://localhost:8000/api/files/cover.jpg',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
 ];
+
+interface GraphQLRequestBody {
+  operationName: string;
+  variables?: {
+    id?: string;
+    [key: string]: unknown;
+  };
+}
 
 test.describe('Full Track Management Flow', () => {
   test.beforeEach(async ({ page }) => {
-      await page.route('**/api/tracks**', (route) => {
-          route.fulfill({
-              status: 200,
-              contentType: 'application/json',
-              body: JSON.stringify({
-                  data: mockTracksList,
-                  meta: { 
-                      total: 2, 
-                      page: 1, 
-                      limit: 10,
-                      totalPages: 1 
-                  }
-              }),
-          });
+    await page.route('**/graphql', async (route) => {
+      const requestBody = route.request().postDataJSON() as GraphQLRequestBody;
+
+      if (requestBody.operationName === 'GetTracks') {
+        console.log('Intercepted GetTracks operation.');
+        return await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            data: {
+              tracks: {
+                data: mockTracksList,
+                meta: { total: 2, page: 1, limit: 10, totalPages: 1, __typename: 'Meta' },
+                __typename: 'TracksResponse',
+              },
+            },
+          }),
+        });
+      }
+
+      if (requestBody.operationName === 'UpdateTrack' && requestBody.variables?.id === '1') {
+        console.log('Intercepted UpdateTrack operation for track 1.');
+        const updatedTrack = {
+          ...mockTracksList[0],
+          audioFile: 'ghost_town_uploaded.mp3',
+          __typename: 'Track',
+        };
+        return await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            data: { updateTrack: updatedTrack },
+          }),
+        });
+      }
+
+      return await route.continue();
+    });
+
+    await page.route('**/api/upload', async (route) => {
+      console.log('Intercepted file upload request to /api/upload.');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ filename: 'ghost_town_uploaded.mp3' }),
       });
-        
-        await page.route('**/api/tracks/1/upload', async (route) => {
-            const updatedTrack = { ...mockTracksList[0], audioFile: 'ghost_town_uploaded.mp3' };
-            route.fulfill({ status: 200, body: JSON.stringify(updatedTrack) });
-        });
+    });
+  });
+
+  test('should open upload modal, select a file, and submit', async ({ page }) => {
+    const getTracksResponsePromise = page.waitForResponse((response) => {
+      const postData = response.request().postData();
+      return (
+        response.url().includes('/graphql') &&
+        response.request().method() === 'POST' &&
+        postData !== null &&
+        postData.includes('GetTracks')
+      );
     });
 
-    test('should open upload modal, select a file, and submit', async ({ page }) => {
-        const apiResponsePromise = page.waitForResponse('**/api/tracks**');
+    await page.goto('/');
+    await getTracksResponsePromise;
 
-        await page.goto('/');
+    const trackToUpload = page.getByTestId('track-item-1');
+    await expect(trackToUpload).toBeVisible({ timeout: 10000 });
 
-        await apiResponsePromise;
+    await trackToUpload.getByTestId('upload-track-1').click();
+    const modal = page.locator('.modal-content');
 
-        const trackListContainer = page.locator('.track-list-container');
-        await expect(trackListContainer).toBeVisible({ timeout: 10000 });
-
-        const trackToUpload = trackListContainer.getByTestId('track-item-1');
-        await expect(trackToUpload).toBeVisible();
-
-        const uploadButton = trackToUpload.getByTestId('upload-track-1');
-        await uploadButton.click();
-
-        const modal = page.locator('.modal-content');
-        await expect(modal).toBeVisible();
-
-        await modal.getByTestId('input-audio-file').setInputFiles({
-            name: 'test-ghost.mp3',
-            mimeType: 'audio/mpeg',
-            buffer: Buffer.from('e2e-audio-data'),
-        });
-
-        await modal.getByTestId('submit-upload-button').click();
-        await expect(modal).not.toBeVisible();
+    const fileChooserPromise = page.waitForEvent('filechooser');
+    await page.getByLabel('Select an audio file:').click();
+    const fileChooser = await fileChooserPromise;
+    await fileChooser.setFiles({
+      name: 'test-ghost.mp3',
+      mimeType: 'audio/mpeg',
+      buffer: Buffer.from('e2e-audio-data'),
     });
+
+    const submitButton = modal.getByRole('button', { name: 'Upload & Save' });
+    await expect(submitButton).toBeEnabled();
+
+    await Promise.all([
+      page.waitForResponse((res) =>
+        res.url().includes('/api/upload') && res.status() === 200
+      ),
+      page.waitForResponse((res) => {
+        const body = res.request().postData();
+        return res.url().includes('/graphql') && body?.includes('UpdateTrack') === true;
+      }),
+      page.waitForResponse((res) => {
+        const body = res.request().postData();
+        return res.url().includes('/graphql') && body?.includes('GetTracks') === true;
+      }),
+      submitButton.click(),
+    ]);
+
+    await expect(modal).not.toBeVisible();
+  });
 });

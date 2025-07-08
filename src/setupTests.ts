@@ -5,6 +5,9 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
+// Було прийнято рішеня відключити правило
+// Правильно типізувати є надлишково складним для тестів
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: vi.fn().mockImplementation(query => ({
@@ -18,3 +21,4 @@ Object.defineProperty(window, 'matchMedia', {
     dispatchEvent: vi.fn(),
   })),
 });
+/* eslint-enable @typescript-eslint/no-unsafe-assignment */

@@ -1,7 +1,7 @@
 import React, { useCallback, memo } from "react";
 import { Track } from "../../../types/track";
 import GenreTag from "../../../components/GenreTag/GenreTag";
-import defaultCover from "../../../assets/default-cover.jpg";
+import defaultCover from "../../../assets/default-cover.webp";
 import { useAudioPlayer } from "../../../features/tracks/components/hooks/useAudioPlayer";
 import { useWaveSurfer } from "../../tracks/components/hooks/useWaveSurfer";
 import { getAbsoluteFileUrl } from "../../../utils/url";
@@ -154,6 +154,8 @@ const TrackItem: React.FC<TrackItemProps> = ({
         alt={`Cover for ${trackToUpload.title}`}
         className="track-item-cover"
         onError={handleImageError}
+        loading="lazy"
+        decoding="async"
       />
 
       <div className="track-item-content">

@@ -4,13 +4,6 @@ import { defineConfig, devices } from '@playwright/test';
 const baseURL = process.env.BASE_URL  || 'http://localhost:3000';
 const apiBaseURL = process.env.VITE_API_URL || 'http://localhost:8000';;
 
-if (!baseURL) {
-  throw new Error('BASE_URL environment variable is required');
-}
-
-if (!apiBaseURL) {
-  throw new Error('VITE_API_URL environment variable is required');
-}
 
 const apiURL = apiBaseURL.endsWith('/api') ? apiBaseURL : `${apiBaseURL}/api`;
 

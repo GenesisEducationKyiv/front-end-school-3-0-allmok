@@ -18,7 +18,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
 
       - name: Cache node_modules
         uses: actions/cache@v3
@@ -53,15 +53,6 @@ jobs:
 
       - name: Run component tests
         run: npm run test:ct
-        continue-on-error: true
-
-      - name: Create .env file for CI
-        run: |
-          echo "BASE_URL=${{ secrets.BASE_URL }}" > .env
-          echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" >> .env
-          echo "CI=true" >> .env
-          echo "Created .env file with contents:"
-          cat .env
       
       - name: Run E2E tests
         run: npx playwright test

@@ -1,10 +1,13 @@
 import React, { useCallback, memo } from "react";
 import { Track } from "../../../types/track";
-import GenreTag from "../../../components/GenreTag/GenreTag";
-import defaultCover from "../../../assets/default-cover.webp";
 import { useAudioPlayer } from "../../../features/tracks/components/hooks/useAudioPlayer";
 import { useWaveSurfer } from "../../tracks/components/hooks/useWaveSurfer";
 import { getAbsoluteFileUrl } from "../../../utils/url";
+import TrackImage from "../../../components/TrackImage";
+import TrackInfo from "../../../components/TrackInfo";
+import TrackActions from "../../../components/TrackActions";
+import TrackGenres from "../../../components/TrackGenres";
+import TrackWaveform from "../../../components/TrackWaveform";
 
 import "../../../css/TrackItem.css";
 
@@ -39,7 +42,6 @@ const TrackItem: React.FC<TrackItemProps> = ({
 
   const isThisTrackPlayingGlobally =
     playingTrackId === trackToUpload.id && isPlaying;
-  const imageUrl = trackToUpload.coverImage ?? defaultCover;
   const fullAudioUrl = getAbsoluteFileUrl(trackToUpload.audioFile);
 
   const {
@@ -53,85 +55,10 @@ const TrackItem: React.FC<TrackItemProps> = ({
     isPlaying: isThisTrackPlayingGlobally,
   });
 
-  const handleInternalGenreRemove = useCallback(
-    (genreToRemove: string) => {
-      if (typeof onGenreRemove === "function") {
-        onGenreRemove(trackToUpload.id, genreToRemove);
-      } else {
-        console.warn(
-          `[TrackItem ${trackToUpload.id}] onGenreRemove is not a function. Cannot remove genre: ${genreToRemove}`
-        );
-      }
-    },
-    [onGenreRemove, trackToUpload.id]
-  );
-
-  const handleEditClick = useCallback(
-    () => onEdit(trackToUpload.id),
-    [onEdit, trackToUpload.id]
-  );
-  const handleDeleteClick = useCallback(
-    () => onDelete(trackToUpload.id),
-    [onDelete, trackToUpload.id]
-  );
-  const handleUploadClick = useCallback(
-    () => onUpload(trackToUpload.id),
-    [onUpload, trackToUpload.id]
-  );
-  const handleDeleteFileClick = useCallback(
-    () => onDeleteFile(trackToUpload.id),
-    [onDeleteFile, trackToUpload.id]
-  );
   const handleSelectChange = useCallback(
     () => onSelectToggle(trackToUpload.id),
     [onSelectToggle, trackToUpload.id]
   );
-
-  const handleImageError = useCallback(
-    (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-      (e.target as HTMLImageElement).src = defaultCover;
-    },
-    []
-  );
-
-  const handlePlayPauseClick = useCallback(() => {
-    if (!fullAudioUrl) {
-      console.warn(`[TrackItem ${trackToUpload.id}] No audio file URL.`);
-      return;
-    }
-
-    if (!isWsReady && !error) {
-      console.warn(
-        `[TrackItem ${trackToUpload.id}] Play/Pause clicked but WS not ready yet.`
-      );
-      return;
-    }
-
-    if (error) {
-      console.error(
-        `[TrackItem ${trackToUpload.id}] Cannot play/pause due to WS error: ${error}`
-      );
-      return;
-    }
-
-    console.log(
-      `[TrackItem ${trackToUpload.id}] Play/Pause button clicked. Currently playing globally: ${isThisTrackPlayingGlobally}`
-    );
-
-    if (isThisTrackPlayingGlobally) {
-      requestPause(trackToUpload.id);
-    } else {
-      requestPlay(trackToUpload.id);
-    }
-  }, [
-    trackToUpload.id,
-    fullAudioUrl,
-    isThisTrackPlayingGlobally,
-    requestPlay,
-    requestPause,
-    isWsReady,
-    error,
-  ]);
 
   return (
     <div
@@ -149,113 +76,51 @@ const TrackItem: React.FC<TrackItemProps> = ({
         aria-label={`Select track ${trackToUpload.title}`}
       />
 
-      <img
-        src={imageUrl}
-        alt={`Cover for ${trackToUpload.title}`}
-        className="track-item-cover"
-        onError={handleImageError}
-        loading="lazy"
-        decoding="async"
+      <TrackImage
+        imageUrl={trackToUpload.coverImage}
+        trackTitle={trackToUpload.title}
+        trackId={trackToUpload.id}
       />
 
       <div className="track-item-content">
         <div className="track-item-main-info">
-          <div className="track-info">
-            {trackToUpload.audioFile && (
-              <button
-                onClick={handlePlayPauseClick}
-                className={`play-pause-button ${
-                  isThisTrackPlayingGlobally ? "playing" : "paused"
-                }`}
-                disabled={!isWsReady && !error}
-                data-testid={
-                  isThisTrackPlayingGlobally
-                    ? `pause-button-${trackToUpload.id}`
-                    : `play-button-${trackToUpload.id}`
-                }
-                aria-label={isThisTrackPlayingGlobally ? "Pause" : "Play"}
-                title={isThisTrackPlayingGlobally ? "Pause" : "Play"}
-              >
-                {isThisTrackPlayingGlobally ? "❚❚" : "▶"}
-              </button>
-            )}
-            <span data-testid={`track-item-${trackToUpload.id}-artist`}>
-              {trackToUpload.artist}
-            </span>
-            {" - "}
-            <span data-testid={`track-item-${trackToUpload.id}-title`}>
-              {trackToUpload.title}
-            </span>
-            {trackToUpload.album && (
-              <span className="track-album">({trackToUpload.album})</span>
-            )}
-          </div>
+          <TrackInfo
+            trackId={trackToUpload.id}
+            artist={trackToUpload.artist}
+            title={trackToUpload.title}
+            album={trackToUpload.album}
+            audioFile={trackToUpload.audioFile}
+            isPlaying={isThisTrackPlayingGlobally}
+            audioUrl={fullAudioUrl}
+            isReady={isWsReady}
+            error={error}
+            onPlay={requestPlay}
+            onPause={requestPause}
+          />
 
-          <div className="track-actions">
-            <button
-              onClick={handleEditClick}
-              data-testid={`edit-track-${trackToUpload.id}`}
-              className="button-edit"
-            >
-              Edit
-            </button>
-            <button
-              onClick={handleDeleteClick}
-              data-testid={`delete-track-${trackToUpload.id}`}
-              className="button-delete"
-            >
-              Delete
-            </button>
-            {trackToUpload.audioFile ? (
-              <button
-                onClick={handleDeleteFileClick}
-                data-testid={`delete-track-file-${trackToUpload.id}`}
-                className="button-delete-file"
-              >
-                Delete File
-              </button>
-            ) : (
-              <button
-                onClick={handleUploadClick}
-                data-testid={`upload-track-${trackToUpload.id}`}
-                className="button-upload"
-              >
-                Upload
-              </button>
-            )}
-          </div>
+          <TrackActions
+            trackId={trackToUpload.id}
+            hasAudioFile={!!trackToUpload.audioFile}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onUpload={onUpload}
+            onDeleteFile={onDeleteFile}
+          />
         </div>
 
-        <div className="track-genres">
-          {trackToUpload.genres && trackToUpload.genres.length > 0 ? (
-            trackToUpload.genres.map((genre) => (
-              <GenreTag
-                key={genre}
-                genre={genre}
-                onRemove={handleInternalGenreRemove}
-              />
-            ))
-          ) : (
-            <span className="no-genres">No genres specified</span>
-          )}
-        </div>
+        <TrackGenres
+          trackId={trackToUpload.id}
+          genres={trackToUpload.genres || []}
+          onGenreRemove={onGenreRemove}
+        />
 
         {trackToUpload.audioFile && (
-          <div
-            ref={waveformContainerRef}
-            className="waveform-container"
-            data-testid={`waveform-${trackToUpload.id}`}
-            data-ui-test-id={`audio-progress-${trackToUpload.id}`}
-          >
-            {!isWsReady && !error && (
-              <div className="waveform-status">Loading waveform...</div>
-            )}
-            {error && (
-              <div className="waveform-status waveform-error">
-                Error: {error}
-              </div>
-            )}
-          </div>
+          <TrackWaveform
+            trackId={trackToUpload.id}
+            waveformContainerRef={waveformContainerRef}
+            isReady={isWsReady}
+            error={error}
+          />
         )}
       </div>
     </div>

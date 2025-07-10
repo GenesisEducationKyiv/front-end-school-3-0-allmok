@@ -1,4 +1,5 @@
 import React, { useCallback, memo } from "react";
+import { logger } from "../utils/logger";
 import GenreTag from "../components/GenreTag/GenreTag";
 
 interface TrackGenresProps {
@@ -12,32 +13,31 @@ const TrackGenres: React.FC<TrackGenresProps> = ({
   genres,
   onGenreRemove,
 }) => {
-  const handleInternalGenreRemove = useCallback(
-    (genreToRemove: string) => {
-      if (typeof onGenreRemove === "function") {
-        onGenreRemove(trackId, genreToRemove);
-      } else {
-        console.warn(
-          `[TrackGenres ${trackId}] onGenreRemove is not a function. Cannot remove genre: ${genreToRemove}`
-        );
-      }
-    },
-    [onGenreRemove, trackId]
-  );
+  const handleInternalGenreRemove = useCallback((genreToRemove: string) => {
+    if (typeof onGenreRemove === "function") {
+      onGenreRemove(trackId, genreToRemove);
+    } else {
+      logger.warn(`[TrackGenres ${trackId}] onGenreRemove is not a function. Cannot remove genre: ${genreToRemove}`);
+    }
+  }, [trackId, onGenreRemove]);
+
+  if (!genres?.length) {
+    return (
+      <div className="track-genres">
+        <span className="no-genres">No genres specified</span>
+      </div>
+    );
+  }
 
   return (
     <div className="track-genres">
-      {genres && genres.length > 0 ? (
-        genres.map((genre) => (
-          <GenreTag
-            key={genre}
-            genre={genre}
-            onRemove={handleInternalGenreRemove}
-          />
-        ))
-      ) : (
-        <span className="no-genres">No genres specified</span>
-      )}
+      {genres.map((genre) => (
+        <GenreTag
+          key={genre}
+          genre={genre}
+          onRemove={handleInternalGenreRemove}
+        />
+      ))}
     </div>
   );
 };

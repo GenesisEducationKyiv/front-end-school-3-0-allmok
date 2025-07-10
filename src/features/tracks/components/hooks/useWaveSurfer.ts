@@ -1,12 +1,13 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import WaveSurfer from 'wavesurfer.js';
+import { logger } from '../../../../utils/logger';
 
 interface UseWaveSurferOptions {
   audioUrl: string | null;
   trackId: string;
   onFinish: (trackId: string) => void;
   isPlaying: boolean;
-  enabled?: boolean; 
+  enabled?: boolean;
 }
 
 interface UseWaveSurferReturn {
@@ -29,11 +30,24 @@ export const useWaveSurfer = ({
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  
+  const handleReady = useCallback(() => {
+    setIsReady(true);
+  }, []);
+
+  const handleError = useCallback((err: Error) => {
+    logger.error(`[useWaveSurfer ${trackId}] WS Error:`, err);
+    setError(err.message || 'Unknown WaveSurfer error');
+    setIsReady(false);
+  }, [trackId]);
+
+  const handleFinish = useCallback(() => {
+    onFinish(trackId);
+  }, [onFinish, trackId]);
+
   useEffect(() => {
     if (!enabled || !waveformContainerRef.current || !audioUrl) {
       if (!audioUrl && trackId && enabled) {
-        console.error(`[useWaveSurfer ${trackId}] Invalid audio URL construction.`);
+        logger.error(`[useWaveSurfer ${trackId}] Invalid audio URL construction.`);
         setError("Invalid audio URL");
       }
       return;
@@ -52,21 +66,8 @@ export const useWaveSurfer = ({
       barWidth: 2,
       barGap: 1,
     });
+
     wavesurferRef.current = ws;
-
-    const handleReady = () => {
-      setIsReady(true);
-    };
-
-    const handleError = (err: Error) => {
-      console.error(`[useWaveSurfer ${trackId}] WS Error:`, err);
-      setError(err.message || 'Unknown WaveSurfer error');
-      setIsReady(false);
-    };
-
-    const handleFinish = () => {
-      onFinish(trackId);
-    };
 
     ws.on('ready', handleReady);
     ws.on('error', handleError);
@@ -80,8 +81,7 @@ export const useWaveSurfer = ({
       wavesurferRef.current = null;
       setIsReady(false);
     };
-  }, [trackId, audioUrl, onFinish, enabled]);
-
+  }, [trackId, audioUrl, enabled, handleReady, handleError, handleFinish]);
 
   useEffect(() => {
     const ws = wavesurferRef.current;
@@ -89,7 +89,7 @@ export const useWaveSurfer = ({
 
     if (isPlaying) {
       if (!ws.isPlaying()) {
-        ws.play().catch(e => console.error(`[useWaveSurfer ${trackId}] Error on context play():`, e));
+        ws.play().catch(e => logger.error(`[useWaveSurfer ${trackId}] Error on context play():`, e));
       }
     } else {
       if (ws.isPlaying()) {
@@ -105,14 +105,13 @@ export const useWaveSurfer = ({
     try {
       await ws.play();
     } catch (e) {
-      console.error(`[useWaveSurfer ${trackId}] Error playing track:`, e);
+      logger.error(`[useWaveSurfer ${trackId}] Error playing track:`, e);
     }
   }, [trackId]);
 
   const pauseTrack = useCallback((): void => {
     const ws = wavesurferRef.current;
     if (!ws) return;
-    
     ws.pause();
   }, []);
 

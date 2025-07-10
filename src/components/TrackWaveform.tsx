@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, lazy, Suspense } from "react";
 
 interface TrackWaveformProps {
   trackId: string;
@@ -7,26 +7,31 @@ interface TrackWaveformProps {
   error: string | null;
 }
 
-const TrackWaveform: React.FC<TrackWaveformProps> = ({
-  trackId,
-  waveformContainerRef,
-  isReady,
-  error,
-}) => {
+const LazyWaveformComponent = lazy(() => 
+  Promise.resolve({
+    default: ({ trackId, waveformContainerRef, isReady, error }: TrackWaveformProps) => (
+      <div
+        ref={waveformContainerRef}
+        className="waveform-container"
+        data-testid={`waveform-${trackId}`}
+        data-ui-test-id={`audio-progress-${trackId}`}
+      >
+        {!isReady && !error && (
+          <div className="waveform-status">Loading waveform...</div>
+        )}
+        {error && (
+          <div className="waveform-status waveform-error">Error: {error}</div>
+        )}
+      </div>
+    )
+  })
+);
+
+const TrackWaveform: React.FC<TrackWaveformProps> = (props) => {
   return (
-    <div
-      ref={waveformContainerRef}
-      className="waveform-container"
-      data-testid={`waveform-${trackId}`}
-      data-ui-test-id={`audio-progress-${trackId}`}
-    >
-      {!isReady && !error && (
-        <div className="waveform-status">Loading waveform...</div>
-      )}
-      {error && (
-        <div className="waveform-status waveform-error">Error: {error}</div>
-      )}
-    </div>
+    <Suspense fallback={<div className="waveform-loading">Loading waveform...</div>}>
+      <LazyWaveformComponent {...props} />
+    </Suspense>
   );
 };
 

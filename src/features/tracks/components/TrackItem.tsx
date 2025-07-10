@@ -4,6 +4,8 @@ import React, {
   useState,
   useRef,
   useEffect,
+  lazy,
+  Suspense,
 } from "react";
 import { Track } from "../../../types/track";
 import { useAudioPlayer } from "../../../features/tracks/components/hooks/useAudioPlayer";
@@ -13,7 +15,8 @@ import TrackImage from "../../../components/TrackImage";
 import TrackInfo from "../../../components/TrackInfo";
 import TrackActions from "../../../components/TrackActions";
 import TrackGenres from "../../../components/TrackGenres";
-import TrackWaveform from "../../../components/TrackWaveform";
+
+const TrackWaveform = lazy(() => import("../../../components/TrackWaveform"));
 
 import "../../../css/TrackItem.css";
 
@@ -49,37 +52,29 @@ const TrackItem: React.FC<TrackItemProps> = ({
     notifyTrackFinished,
   } = useAudioPlayer();
 
-  useEffect(() => {
-    const currentRef = itemRef.current; 
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsIntersecting(true);
-
-          if (currentRef) {
-            observer.unobserve(currentRef);
-          }
-        }
-      },
-      {
-        rootMargin: "200px",
-      }
-    );
-
-    if (currentRef) {
-      observer.observe(currentRef);
+  const handleIntersection = useCallback((entries: IntersectionObserverEntry[]) => {
+    const [entry] = entries;
+    if (entry.isIntersecting) {
+      setIsIntersecting(true);
     }
+  }, []);
+
+  useEffect(() => {
+    const currentRef = itemRef.current;
+    if (!currentRef) return;
+
+    const observer = new IntersectionObserver(handleIntersection, {
+      rootMargin: "200px",
+    });
+
+    observer.observe(currentRef);
 
     return () => {
-      if (currentRef) {
-        observer.unobserve(currentRef);
-      }
+      observer.disconnect();
     };
-  }, []); 
+  }, [handleIntersection]);
 
-  const isThisTrackPlayingGlobally =
-    playingTrackId === trackToUpload.id && isPlaying;
+  const isThisTrackPlayingGlobally = playingTrackId === trackToUpload.id && isPlaying;
   const fullAudioUrl = getAbsoluteFileUrl(trackToUpload.audioFile);
 
   const {
@@ -91,20 +86,21 @@ const TrackItem: React.FC<TrackItemProps> = ({
     trackId: trackToUpload.id,
     onFinish: notifyTrackFinished,
     isPlaying: isThisTrackPlayingGlobally,
-    enabled: isIntersecting, 
+    enabled: isIntersecting,
   });
 
-  const handleSelectChange = useCallback(
-    () => onSelectToggle(trackToUpload.id),
-    [onSelectToggle, trackToUpload.id]
-  );
+  const handleSelectChange = useCallback(() => {
+    onSelectToggle(trackToUpload.id);
+  }, [onSelectToggle, trackToUpload.id]);
+
+  const trackItemClass = `track-item ${isSelected ? "selected" : ""} ${
+    isThisTrackPlayingGlobally ? "active" : ""
+  }`;
 
   return (
     <div
-      ref={itemRef} 
-      className={`track-item ${isSelected ? "selected" : ""} ${
-        isThisTrackPlayingGlobally ? "active" : ""
-      }`}
+      ref={itemRef}
+      className={trackItemClass}
       data-testid={`track-item-${trackToUpload.id}`}
     >
       <input
@@ -155,12 +151,14 @@ const TrackItem: React.FC<TrackItemProps> = ({
         />
 
         {trackToUpload.audioFile && isIntersecting && (
-          <TrackWaveform
-            trackId={trackToUpload.id}
-            waveformContainerRef={waveformContainerRef}
-            isReady={isWsReady}
-            error={error}
-          />
+          <Suspense fallback={<div className="waveform-loading">Loading waveform...</div>}>
+            <TrackWaveform
+              trackId={trackToUpload.id}
+              waveformContainerRef={waveformContainerRef}
+              isReady={isWsReady}
+              error={error}
+            />
+          </Suspense>
         )}
       </div>
     </div>

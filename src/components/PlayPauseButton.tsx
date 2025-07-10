@@ -1,4 +1,5 @@
 import React, { useCallback, memo } from "react";
+import { logger } from "../utils/logger";
 
 interface PlayPauseButtonProps {
   trackId: string;
@@ -21,45 +22,38 @@ const PlayPauseButton: React.FC<PlayPauseButtonProps> = ({
 }) => {
   const handlePlayPauseClick = useCallback(() => {
     if (!audioUrl) {
-      console.warn(`[PlayPauseButton ${trackId}] No audio file URL.`);
+      logger.warn(`[PlayPauseButton ${trackId}] No audio file URL.`);
       return;
     }
-
     if (!isReady && !error) {
-      console.warn(
-        `[PlayPauseButton ${trackId}] Play/Pause clicked but not ready yet.`
-      );
+      logger.warn(`[PlayPauseButton ${trackId}] Play/Pause clicked but not ready yet.`);
       return;
     }
-
     if (error) {
-      console.error(
-        `[PlayPauseButton ${trackId}] Cannot play/pause due to error: ${error}`
-      );
+      logger.error(`[PlayPauseButton ${trackId}] Cannot play/pause due to error: ${error}`);
       return;
     }
-
-    console.log(
-      `[PlayPauseButton ${trackId}] Play/Pause button clicked. Currently playing: ${isPlaying}`
-    );
-
+    logger.log(`[PlayPauseButton ${trackId}] Play/Pause button clicked. Currently playing: ${isPlaying}`);
     if (isPlaying) {
       onPause(trackId);
     } else {
       onPlay(trackId);
     }
-  }, [trackId, audioUrl, isPlaying, onPlay, onPause, isReady, error]);
+  }, [trackId, isPlaying, onPlay, onPause, audioUrl, error, isReady]);
+
+  const isDisabled = !isReady && !error;
+  const buttonClass = `play-pause-button ${isPlaying ? "playing" : "paused"}`;
+  const testId = isPlaying ? `pause-button-${trackId}` : `play-button-${trackId}`;
+  const ariaLabel = isPlaying ? "Pause" : "Play";
 
   return (
     <button
       onClick={handlePlayPauseClick}
-      className={`play-pause-button ${isPlaying ? "playing" : "paused"}`}
-      disabled={!isReady && !error}
-      data-testid={
-        isPlaying ? `pause-button-${trackId}` : `play-button-${trackId}`
-      }
-      aria-label={isPlaying ? "Pause" : "Play"}
-      title={isPlaying ? "Pause" : "Play"}
+      className={buttonClass}
+      disabled={isDisabled}
+      data-testid={testId}
+      aria-label={ariaLabel}
+      title={ariaLabel}
     >
       {isPlaying ? "❚❚" : "▶"}
     </button>

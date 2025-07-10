@@ -17,39 +17,44 @@ const TrackActions: React.FC<TrackActionsProps> = ({
   onUpload,
   onDeleteFile,
 }) => {
-  const handleEditClick = useCallback(() => onEdit(trackId), [onEdit, trackId]);
-  const handleDeleteClick = useCallback(
-    () => onDelete(trackId),
-    [onDelete, trackId]
-  );
-  const handleUploadClick = useCallback(
-    () => onUpload(trackId),
-    [onUpload, trackId]
-  );
-  const handleDeleteFileClick = useCallback(
-    () => onDeleteFile(trackId),
-    [onDeleteFile, trackId]
-  );
+  const handleAction = useCallback((action: 'edit' | 'delete' | 'upload' | 'deleteFile') => {
+    switch (action) {
+      case 'edit':
+        onEdit(trackId);
+        break;
+      case 'delete':
+        onDelete(trackId);
+        break;
+      case 'upload':
+        onUpload(trackId);
+        break;
+      case 'deleteFile':
+        onDeleteFile(trackId);
+        break;
+    }
+  }, [trackId, onEdit, onDelete, onUpload, onDeleteFile]);
 
   return (
     <div className="track-actions">
       <button
-        onClick={handleEditClick}
+        onClick={() => handleAction('edit')}
         data-testid={`edit-track-${trackId}`}
         className="button-edit"
       >
         Edit
       </button>
+      
       <button
-        onClick={handleDeleteClick}
+        onClick={() => handleAction('delete')}
         data-testid={`delete-track-${trackId}`}
         className="button-delete"
       >
         Delete
       </button>
+      
       {hasAudioFile ? (
         <button
-          onClick={handleDeleteFileClick}
+          onClick={() => handleAction('deleteFile')}
           data-testid={`delete-track-file-${trackId}`}
           className="button-delete-file"
         >
@@ -57,7 +62,7 @@ const TrackActions: React.FC<TrackActionsProps> = ({
         </button>
       ) : (
         <button
-          onClick={handleUploadClick}
+          onClick={() => handleAction('upload')}
           data-testid={`upload-track-${trackId}`}
           className="button-upload"
         >

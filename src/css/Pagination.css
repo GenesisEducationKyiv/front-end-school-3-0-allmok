@@ -36,3 +36,19 @@
   color: var(--text-secondary);
   font-size: 0.9rem;
 }
+
+@media (max-width: 600px) {
+.pagination-container {
+  gap: 0.5rem;
+  padding: 1rem 0;
+}
+
+.pagination-button {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+.pagination-info {
+  font-size: 0.85rem;
+}
+}

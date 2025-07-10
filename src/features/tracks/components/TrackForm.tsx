@@ -92,13 +92,13 @@ const TrackForm: React.FC<TrackFormProps> = ({
   availableGenres = [],
   isLoading = false,
 }) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState(() => ({
     title: initialData.title ?? '',
     artist: initialData.artist ?? '',
     album: initialData.album ?? '',
     coverImage: initialData.coverImage ?? '',
     genres: initialData.genres ?? [],
-  });
+  }));
 
   const [errors, setErrors] = useState<FormErrors>({});
 

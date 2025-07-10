@@ -180,3 +180,44 @@
   outline: 3px solid var(--accent-primary);
   outline-offset: 3px;
 }
+
+@media (max-width: 600px) {
+  
+  .list-controls {
+    flex-direction: column;
+    align-items: stretch; 
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .control-group.search-group {
+    margin-right: 0; 
+  }
+
+  .sort-controls {
+    flex-direction: column;
+    width: 100%;
+    gap: 1rem;
+  }
+
+  .create-button {
+    display: none;
+  }
+  
+  .fab-create-track {
+    bottom: 1rem;
+    right: 1rem;
+  }
+  
+
+  .fab-create-track:hover:not(:disabled) {
+    width: 56px;
+    border-radius: 50%;
+  }
+  .fab-create-track:hover:not(:disabled) .fab-icon {
+    opacity: 1;
+  }
+  .fab-create-track:hover:not(:disabled) .fab-text {
+    opacity: 0;
+  }
+}

@@ -7,6 +7,7 @@ import { client } from './graphql/apolloClient';
 import App from './App';
 import { AudioPlayerProvider } from './contexts/AudioPlayerProvider';
 import './index.css';
+import './material-components.ts';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

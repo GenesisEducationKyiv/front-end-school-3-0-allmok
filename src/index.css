@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import "./styles/material-theme/dark.css";
+
 
 :root {
   --bg-primary: #121212;
@@ -9,7 +10,7 @@
   --accent-primary-hover: #8B5CF6; 
   --border-color: #374151; 
 
-  --font-family-main: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif; 
+  --font-family-main: 'Roboto', system-ui, Avenir, Helvetica, Arial, sans-serif; 
 
   line-height: 1.5;
   font-weight: 400;
@@ -25,16 +26,17 @@
 body {
   margin: 0;
   font-family: var(--font-family-main);
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
+
+  background-color: var(--md-sys-color-background);
+  color: var(--md-sys-color-on-background);
+  
   min-height: 100vh;
   background-image:
     radial-gradient(
       circle at center,
-      var(--gradient-color-1) 0%,
+      var(--md-sys-color-surface-container-highest) 0%,
       transparent 100% 
     );
- 
 }
 
 

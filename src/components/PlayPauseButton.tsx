@@ -20,6 +20,7 @@ const PlayPauseButton: React.FC<PlayPauseButtonProps> = ({
   onPlay,
   onPause,
 }) => {
+
   const handlePlayPauseClick = useCallback(() => {
     if (!audioUrl) {
       logger.warn(`[PlayPauseButton ${trackId}] No audio file URL.`);
@@ -33,7 +34,7 @@ const PlayPauseButton: React.FC<PlayPauseButtonProps> = ({
       logger.error(`[PlayPauseButton ${trackId}] Cannot play/pause due to error: ${error}`);
       return;
     }
-    logger.log(`[PlayPauseButton ${trackId}] Play/Pause button clicked. Currently playing: ${isPlaying}`);
+    
     if (isPlaying) {
       onPause(trackId);
     } else {
@@ -42,21 +43,24 @@ const PlayPauseButton: React.FC<PlayPauseButtonProps> = ({
   }, [trackId, isPlaying, onPlay, onPause, audioUrl, error, isReady]);
 
   const isDisabled = !isReady && !error;
-  const buttonClass = `play-pause-button ${isPlaying ? "playing" : "paused"}`;
-  const testId = isPlaying ? `pause-button-${trackId}` : `play-button-${trackId}`;
   const ariaLabel = isPlaying ? "Pause" : "Play";
 
   return (
-    <button
+    <md-icon-button
+    filled-tonal
+      toggle 
+      selected={isPlaying} 
       onClick={handlePlayPauseClick}
-      className={buttonClass}
       disabled={isDisabled}
-      data-testid={testId}
       aria-label={ariaLabel}
       title={ariaLabel}
+      className="play-pause-button-m3"
+      data-testid={isPlaying ? `pause-button-${trackId}` : `play-button-${trackId}`}
     >
-      {isPlaying ? "❚❚" : "▶"}
-    </button>
+      <span slot="icon" className="material-symbols-outlined">play_arrow</span>
+      
+      <span slot="selectedIcon" className="material-symbols-outlined">pause</span>
+    </md-icon-button>
   );
 };
 

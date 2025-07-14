@@ -20,6 +20,7 @@ import TrackGenres from "../../../components/TrackGenres";
 const TrackWaveform = lazy(() => import("../../../components/TrackWaveform"));
 
 import "../../../css/TrackItem.css";
+import '../../../css/PlayPause.css'
 
 interface TrackItemProps {
   trackToUpload: Track;

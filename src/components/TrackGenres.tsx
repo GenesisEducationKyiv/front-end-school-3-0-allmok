@@ -1,5 +1,4 @@
 import React, { useCallback, memo } from "react";
-import { logger } from "../utils/logger";
 import GenreTag from "../components/GenreTag/GenreTag";
 
 interface TrackGenresProps {
@@ -13,12 +12,9 @@ const TrackGenres: React.FC<TrackGenresProps> = ({
   genres,
   onGenreRemove,
 }) => {
+
   const handleInternalGenreRemove = useCallback((genreToRemove: string) => {
-    if (typeof onGenreRemove === "function") {
-      onGenreRemove(trackId, genreToRemove);
-    } else {
-      logger.warn(`[TrackGenres ${trackId}] onGenreRemove is not a function. Cannot remove genre: ${genreToRemove}`);
-    }
+    onGenreRemove(trackId, genreToRemove);
   }, [trackId, onGenreRemove]);
 
   if (!genres?.length) {

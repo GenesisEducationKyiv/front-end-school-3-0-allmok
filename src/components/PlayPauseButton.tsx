@@ -35,7 +35,7 @@ const PlayPauseButton: React.FC<PlayPauseButtonProps> = ({
       return;
     }
     
-    if (isPlaying) {
+    if (isPlaying) { 
       onPause(trackId);
     } else {
       onPlay(trackId);
@@ -47,7 +47,7 @@ const PlayPauseButton: React.FC<PlayPauseButtonProps> = ({
 
   return (
     <md-icon-button
-    filled-tonal
+      filled-tonal
       toggle 
       selected={isPlaying} 
       onClick={handlePlayPauseClick}

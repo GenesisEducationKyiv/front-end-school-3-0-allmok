@@ -26,6 +26,8 @@
     },
     "types": ["vite/client", "vitest/globals"]
   },
+
+
   "include": [
     "src/custom.d.ts", 
     "e2e", 

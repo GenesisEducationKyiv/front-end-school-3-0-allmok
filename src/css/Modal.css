@@ -42,3 +42,27 @@
     color: #fff;
   }
   
+  @media (max-width: 600px) {
+  
+    .modal-content {
+      padding: 20px 15px; 
+      max-height: 85vh; 
+    }
+  
+    .confirm-dialog-title {
+      font-size: 1.3em; 
+    }
+  
+    .confirm-dialog-message {
+      font-size: 1em;
+    }
+  
+    .confirm-dialog-actions {
+      flex-direction: column-reverse;
+      gap: 0.75rem;
+    }
+  
+    .confirm-dialog-actions button {
+      width: 100%;
+    }
+  }

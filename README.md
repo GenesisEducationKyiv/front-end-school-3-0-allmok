@@ -6,7 +6,7 @@ A single-page application built with React and Vite for managing a personal musi
 
 ## 🚀 Tech Stack
 
-*   **Frontend:** React 18, Vite, TypeScript
+*   **Frontend:** React 22, Vite, TypeScript
 *   **API:** Apollo Client 
 *   **Protocol:** GraphQL (Queries, Mutations, Subscriptions)
 *   **Audio:** WaveSurfer.js (for playback and visualization)

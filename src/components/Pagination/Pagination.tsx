@@ -1,20 +1,19 @@
-import React from 'react';
-import '../../css/Pagination.css';
+import React from "react";
+import "../../css/Pagination.css";
 
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
-  onPageChange: (page: number) => void; 
-  'data-testid'?: string;
+  onPageChange: (page: number) => void;
+  "data-testid"?: string;
 }
 
 const Pagination: React.FC<PaginationProps> = ({
   currentPage,
   totalPages,
   onPageChange,
-  'data-testid': dataTestId = "pagination", 
+  "data-testid": dataTestId = "pagination",
 }) => {
-
   if (totalPages <= 1) {
     return null;
   }
@@ -35,7 +34,7 @@ const Pagination: React.FC<PaginationProps> = ({
     <div className="pagination-container" data-testid={dataTestId}>
       <button
         onClick={handlePrevious}
-        disabled={currentPage === 1} 
+        disabled={currentPage === 1}
         data-testid="pagination-prev"
         className="pagination-button"
       >
@@ -48,7 +47,7 @@ const Pagination: React.FC<PaginationProps> = ({
 
       <button
         onClick={handleNext}
-        disabled={currentPage === totalPages} 
+        disabled={currentPage === totalPages}
         data-testid="pagination-next"
         className="pagination-button"
       >

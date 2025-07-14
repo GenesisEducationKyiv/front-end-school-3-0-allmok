@@ -7,6 +7,7 @@ import React, {
   lazy,
   Suspense,
 } from "react";
+import clsx from "clsx";
 import { Track } from "../../../types/track";
 import { useAudioPlayer } from "../../../features/tracks/components/hooks/useAudioPlayer";
 import { useWaveSurfer } from "../../tracks/components/hooks/useWaveSurfer";
@@ -93,9 +94,10 @@ const TrackItem: React.FC<TrackItemProps> = ({
     onSelectToggle(trackToUpload.id);
   }, [onSelectToggle, trackToUpload.id]);
 
-  const trackItemClass = `track-item ${isSelected ? "selected" : ""} ${
-    isThisTrackPlayingGlobally ? "active" : ""
-  }`;
+  const trackItemClass = clsx("track-item", {
+    selected: isSelected,
+    active: isThisTrackPlayingGlobally,
+  });
 
   return (
     <div

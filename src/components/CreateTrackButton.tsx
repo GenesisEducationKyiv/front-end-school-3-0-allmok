@@ -6,19 +6,23 @@ interface CreateTrackButtonProps {
 }
 
 export const CreateTrackButton: React.FC<CreateTrackButtonProps> = ({ onClick, disabled }) => {
-  return (
-    <div className="fab-container">
-      <md-fab
-        variant="primary"
-        label="Add Track"
-        aria-label="Add Track" 
-        onClick={onClick}
-        disabled={disabled}
-        data-testid="create-track-button"
-      >
+  const handleClick = () => {
+    if (!disabled) {
+      onClick();
+    }
+  };
 
-        <span slot="icon" className="material-symbols-outlined">add</span>
-      </md-fab>
-    </div>
+  return (
+    <md-fab
+      variant="primary"
+      size="medium"
+      label="Add Track"
+      disabled={disabled}
+      onClick={handleClick}
+      data-testid="create-track-button"
+      title="Create new track"
+    >
+      <md-icon slot="icon">add</md-icon>
+    </md-fab>
   );
 };

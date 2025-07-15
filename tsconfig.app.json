@@ -29,7 +29,6 @@
 
 
   "include": [
-    "src/custom.d.ts", 
     "e2e", 
     "playwright",
     "src",

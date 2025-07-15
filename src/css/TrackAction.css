@@ -1,0 +1,15 @@
+/* (Edit/Delete/Upload)  */
+
+.track-actions {
+  display: flex;
+  gap: 0.5rem; 
+  align-items: center;
+  flex-shrink: 0;
+  padding-right: 0.25rem;
+}
+
+.button-error {
+  --md-icon-button-icon-color: var(--md-sys-color-error);
+  --md-icon-button-hover-icon-color: var(--md-sys-color-error);
+  --md-icon-button-hover-state-layer-color: var(--md-sys-color-error);
+}

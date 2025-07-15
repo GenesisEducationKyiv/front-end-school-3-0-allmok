@@ -1,4 +1,3 @@
-/* FAB */
 .fab-container {
   position: fixed; 
   bottom: 2rem;   
@@ -8,7 +7,6 @@
 
 .fab-container md-fab {
   --md-fab-label-text-size: 0;
-/*  --md-fab-label-text-tracking: 2px;*/
   transition: width 0.9s ease-in-out; 
 }
 

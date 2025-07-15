@@ -19,55 +19,53 @@ const TrackActions: React.FC<TrackActionsProps> = ({
 }) => {
   const handleAction = useCallback((action: 'edit' | 'delete' | 'upload' | 'deleteFile') => {
     switch (action) {
-      case 'edit':
-        onEdit(trackId);
-        break;
-      case 'delete':
-        onDelete(trackId);
-        break;
-      case 'upload':
-        onUpload(trackId);
-        break;
-      case 'deleteFile':
-        onDeleteFile(trackId);
-        break;
+      case 'edit': onEdit(trackId); break;
+      case 'delete': onDelete(trackId); break;
+      case 'upload': onUpload(trackId); break;
+      case 'deleteFile': onDeleteFile(trackId); break;
     }
   }, [trackId, onEdit, onDelete, onUpload, onDeleteFile]);
 
   return (
     <div className="track-actions">
-      <button
+      <md-icon-button
         onClick={() => handleAction('edit')}
         data-testid={`edit-track-${trackId}`}
-        className="button-edit"
+        aria-label="Edit track details"
+        title="Edit"
       >
-        Edit
-      </button>
+        <md-icon>edit</md-icon>
+      </md-icon-button>
       
-      <button
+      <md-icon-button
         onClick={() => handleAction('delete')}
         data-testid={`delete-track-${trackId}`}
-        className="button-delete"
+        className="button-error"
+        aria-label="Delete track"
+        title="Delete"
       >
-        Delete
-      </button>
+        <md-icon>delete</md-icon>
+      </md-icon-button>
       
       {hasAudioFile ? (
-        <button
+        <md-icon-button
           onClick={() => handleAction('deleteFile')}
           data-testid={`delete-track-file-${trackId}`}
-          className="button-delete-file"
+          className="button-error"
+          aria-label="Delete audio file"
+          title="Delete File"
         >
-          Delete File
-        </button>
+          <md-icon>file_upload_off</md-icon>
+        </md-icon-button>
       ) : (
-        <button
+        <md-icon-button
           onClick={() => handleAction('upload')}
           data-testid={`upload-track-${trackId}`}
-          className="button-upload"
+          aria-label="Upload audio file"
+          title="Upload"
         >
-          Upload
-        </button>
+          <md-icon>upload</md-icon>
+        </md-icon-button>
       )}
     </div>
   );

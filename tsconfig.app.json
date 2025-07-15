@@ -7,31 +7,26 @@
     "useDefineForClassFields": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "exactOptionalPropertyTypes": true,
     "noFallthroughCasesInSwitch": true,
-
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": ["vite/client", "vitest/globals"]
+    "types": ["vite/client", "vitest/globals", "node"]
   },
-
-
   "include": [
-    "e2e", 
-    "playwright",
-    "src",
-    "src/types/apollo-upload-client.d.ts" 
-]
+    "src/**/*",
+    "e2e/**/*",
+    "playwright/**/*"
+  ],
+  "typeRoots": ["./src/types", "./node_modules/@types"]
 }

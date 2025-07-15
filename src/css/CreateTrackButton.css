@@ -1,0 +1,35 @@
+/* FAB */
+.fab-container {
+  position: fixed; 
+  bottom: 2rem;   
+  right: 2rem;     
+  z-index: 100;
+}
+
+.fab-container md-fab {
+  --md-fab-label-text-size: 0;
+/*  --md-fab-label-text-tracking: 2px;*/
+  transition: width 0.9s ease-in-out; 
+}
+
+
+.fab-container:hover md-fab:not([disabled]) {
+  width: 150px; 
+}
+
+.fab-container:hover md-fab:not([disabled]) {
+  --md-fab-label-text-size: inherit;
+  --md-fab-label-text-tracking: inherit; 
+}
+
+
+@media (max-width: 600px) {
+  .fab-container {
+    bottom: 1rem;
+    right: 1rem;
+  }
+
+  .fab-container:hover md-fab:not([disabled]) {
+    width: auto;
+  }
+}

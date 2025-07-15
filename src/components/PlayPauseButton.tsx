@@ -20,22 +20,25 @@ const PlayPauseButton: React.FC<PlayPauseButtonProps> = ({
   onPlay,
   onPause,
 }) => {
-
   const handlePlayPauseClick = useCallback(() => {
     if (!audioUrl) {
       logger.warn(`[PlayPauseButton ${trackId}] No audio file URL.`);
       return;
     }
     if (!isReady && !error) {
-      logger.warn(`[PlayPauseButton ${trackId}] Play/Pause clicked but not ready yet.`);
+      logger.warn(
+        `[PlayPauseButton ${trackId}] Play/Pause clicked but not ready yet.`,
+      );
       return;
     }
     if (error) {
-      logger.error(`[PlayPauseButton ${trackId}] Cannot play/pause due to error: ${error}`);
+      logger.error(
+        `[PlayPauseButton ${trackId}] Cannot play/pause due to error: ${error}`,
+      );
       return;
     }
-    
-    if (isPlaying) { 
+
+    if (isPlaying) {
       onPause(trackId);
     } else {
       onPlay(trackId);
@@ -48,18 +51,20 @@ const PlayPauseButton: React.FC<PlayPauseButtonProps> = ({
   return (
     <md-icon-button
       filled-tonal
-      toggle 
-      selected={isPlaying} 
+      toggle
+      selected={isPlaying}
       onClick={handlePlayPauseClick}
       disabled={isDisabled}
       aria-label={ariaLabel}
       title={ariaLabel}
       className="play-pause-button-m3"
-      data-testid={isPlaying ? `pause-button-${trackId}` : `play-button-${trackId}`}
+      data-testid={
+        isPlaying ? `pause-button-${trackId}` : `play-button-${trackId}`
+      }
     >
-      <span slot="icon" className="material-symbols-outlined">play_arrow</span>
-      
-      <span slot="selectedIcon" className="material-symbols-outlined">pause</span>
+      <span className="material-icons">
+        {isPlaying ? "pause" : "play_arrow"}
+      </span>
     </md-icon-button>
   );
 };

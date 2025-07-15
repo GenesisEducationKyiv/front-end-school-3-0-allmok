@@ -1,4 +1,5 @@
 import React from 'react';
+import '../css/CreateTrackButton.css'
 
 interface CreateTrackButtonProps {
   onClick: () => void;
@@ -6,23 +7,19 @@ interface CreateTrackButtonProps {
 }
 
 export const CreateTrackButton: React.FC<CreateTrackButtonProps> = ({ onClick, disabled }) => {
-  const handleClick = () => {
-    if (!disabled) {
-      onClick();
-    }
-  };
 
   return (
-    <md-fab
-      variant="primary"
-      size="medium"
-      label="Add Track"
-      disabled={disabled}
-      onClick={handleClick}
-      data-testid="create-track-button"
-      title="Create new track"
-    >
-      <md-icon slot="icon">add</md-icon>
-    </md-fab>
-  );
+     <div className="fab-container">
+      <md-fab
+        variant="primary"
+        label="Add Track"
+        aria-label="Add Track" 
+        onClick={onClick}
+        disabled={disabled}
+        data-testid="create-track-button"
+      >
+        <span slot="icon" className="material-symbols-outlined">add</span>
+      </md-fab>
+    </div>
+      );
 };

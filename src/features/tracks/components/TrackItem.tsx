@@ -84,7 +84,7 @@ const TrackItem: React.FC<TrackItemProps> = ({
   const fullAudioUrl = getAbsoluteFileUrl(trackToUpload.audioFile);
 
   const {
-    waveformContainerRef,
+    setWaveformContainer,
     isReady: isWsReady,
     error,
   } = useWaveSurfer({
@@ -162,7 +162,7 @@ const TrackItem: React.FC<TrackItemProps> = ({
           >
             <TrackWaveform
               trackId={trackToUpload.id}
-              waveformContainerRef={waveformContainerRef}
+              waveformContainerRef={setWaveformContainer}
               isReady={isWsReady}
               error={error}
             />

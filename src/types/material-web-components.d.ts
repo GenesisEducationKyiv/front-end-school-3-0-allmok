@@ -55,6 +55,10 @@ declare module 'react' {
         toggle?: boolean;
         selected?: boolean;
       };
+      'md-circular-progress': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>,HTMLElement> & {
+        indeterminate?: boolean;
+        value?: number;
+      };
     }
   }
 }

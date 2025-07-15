@@ -20,7 +20,7 @@ import TrackGenres from "../../../components/TrackGenres";
 const TrackWaveform = lazy(() => import("../../../components/TrackWaveform"));
 
 import "../../../css/TrackItem.css";
-import '../../../css/PlayPause.css'
+import "../../../css/PlayPause.css";
 
 interface TrackItemProps {
   trackToUpload: Track;
@@ -54,12 +54,15 @@ const TrackItem: React.FC<TrackItemProps> = ({
     notifyTrackFinished,
   } = useAudioPlayer();
 
-  const handleIntersection = useCallback((entries: IntersectionObserverEntry[]) => {
-    const [entry] = entries;
-    if (entry.isIntersecting) {
-      setIsIntersecting(true);
-    }
-  }, []);
+  const handleIntersection = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      const [entry] = entries;
+      if (entry.isIntersecting) {
+        setIsIntersecting(true);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     const currentRef = itemRef.current;
@@ -76,7 +79,8 @@ const TrackItem: React.FC<TrackItemProps> = ({
     };
   }, [handleIntersection]);
 
-  const isThisTrackPlayingGlobally = playingTrackId === trackToUpload.id && isPlaying;
+  const isThisTrackPlayingGlobally =
+    playingTrackId === trackToUpload.id && isPlaying;
   const fullAudioUrl = getAbsoluteFileUrl(trackToUpload.audioFile);
 
   const {
@@ -154,7 +158,8 @@ const TrackItem: React.FC<TrackItemProps> = ({
         />
 
         {trackToUpload.audioFile && isIntersecting && (
-          <Suspense fallback={<div className="waveform-loading">Loading waveform...</div>}>
+          <Suspense
+          >
             <TrackWaveform
               trackId={trackToUpload.id}
               waveformContainerRef={waveformContainerRef}

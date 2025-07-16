@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useFilterStore } from './hooks/useFilters';
+import { FilterDialog } from './../../../components/FilterDialog'; 
 
 interface TrackFiltersProps {
     availableGenres: string[];
     uniqueArtists: string[];
-    disabled?: boolean; 
+    disabled?: boolean;
 }
 
 export const TrackFilters: React.FC<TrackFiltersProps> = ({
@@ -12,105 +13,92 @@ export const TrackFilters: React.FC<TrackFiltersProps> = ({
     uniqueArtists,
     disabled = false
 }) => {
-    const { 
+    const {
         sort, order, genre, artist, search,
         setSort, setOrder, setGenre, setArtist, setSearch, resetFilters
     } = useFilterStore();
+    
+    const [isGenreDialogOpen, setGenreDialogOpen] = useState(false);
+    const [isArtistDialogOpen, setArtistDialogOpen] = useState(false);
 
     const handleReset = () => {
         resetFilters();
     };
+    
+    const toggleOrder = () => {
+        setOrder(order === 'asc' ? 'desc' : 'asc');
+    };
+
     return (
-        <div>
-            <div
-                className="list-controls"
-                data-testid="list-controls"
-                aria-hidden={false} 
-            >
+        <>
+            <div className="list-controls" data-testid="list-controls">
                 <div className="control-group search-group">
-                    <label htmlFor="search-input">Search:</label>
-                    <input
-                        id="search-input"
-                        type="search"
-                        placeholder="Name, artist, album..."
+                    <md-outlined-text-field
+                        label="Search..."
                         value={search}
-                        onChange={e => setSearch(e.target.value)} 
+                        onInput={(e: any) => setSearch(e.target.value)}
                         data-testid="search-input"
                         disabled={disabled}
-                    />
-                </div>
-
-                <div className="control-group">
-                    <label htmlFor="sort-select">Sort by:</label>
-                    <div className="sort-controls">
-                        <select
-                            id="sort-select"
-                            value={sort} 
-                            onChange={e => setSort(e.target.value)} 
-                            data-testid="sort-select"
-                            disabled={disabled}
-                        >
-                            <option value="createdAt">Date</option>
-                            <option value="title">Name</option>
-                            <option value="artist">Artist</option>
-                            <option value="album">Album</option>
-                        </select>
-                        <select
-                            value={order} 
-                            onChange={e => setOrder(e.target.value as 'asc' | 'desc')}
-                            aria-label="Sorting direction"
-                            data-testid="sort-order"
-                            disabled={disabled}
-                        >
-                            <option value="desc">Descending (↓)</option>
-                            <option value="asc">Ascending (↑)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div className="control-group">
-                    <label htmlFor="filter-genre">Genre:</label>
-                    <select
-                        id="filter-genre"
-                        value={genre} 
-                        onChange={e => setGenre(e.target.value)}
-                        data-testid="filter-genre"
-                        disabled={disabled || availableGenres.length === 0}
                     >
-                        <option value="">All Genres</option>
-                        {availableGenres.map(genreName => (
-                          <option key={genreName} value={genreName}>{genreName}</option>
-                        ))}
-                    </select>
+                        <md-icon slot="leading-icon">search</md-icon>
+                    </md-outlined-text-field>
                 </div>
 
                  <div className="control-group">
-                    <label htmlFor="filter-artist">Artist:</label>
-                    <select
-                        id="filter-artist"
-                        value={artist} 
-                        onChange={e => setArtist(e.target.value)} 
-                        data-testid="filter-artist"
-                        disabled={disabled || uniqueArtists.length === 0}
-                    >
-                        <option value="">All Artists</option>
-                        {uniqueArtists.map(artistName => (
-                          <option key={artistName} value={artistName}>{artistName}</option>
-                        ))}
-                    </select>
-                </div>
-
-                <div className="control-group reset-group">
-                    <button
-                        onClick={handleReset} 
-                        className="reset-filters-button"
-                        data-testid="reset-filters-button"
+                    <md-outlined-select
+                        label="Sort by"
+                        value={sort}
+                        onInput={(e: any) => setSort(e.target.value)}
+                        data-testid="sort-select"
                         disabled={disabled}
                     >
-                        Reset filters
-                    </button>
+                        <md-menu-item value="createdAt">Date</md-menu-item>
+                        <md-menu-item value="title">Name</md-menu-item>
+                        <md-menu-item value="artist">Artist</md-menu-item>
+                        <md-menu-item value="album">Album</md-menu-item>
+                    </md-outlined-select>
+                    <md-icon-button onClick={toggleOrder} disabled={disabled}>
+                        <md-icon>{order === 'asc' ? 'arrow_upward' : 'arrow_downward'}</md-icon>
+                    </md-icon-button>
+                </div>
+
+
+                <div className="control-group">
+                    <md-outlined-button onClick={() => setGenreDialogOpen(true)} disabled={disabled || availableGenres.length === 0}>
+                        Genre: {genre || 'All'}
+                    </md-outlined-button>
+                </div>
+
+                <div className="control-group">
+                    <md-outlined-button onClick={() => setArtistDialogOpen(true)} disabled={disabled || uniqueArtists.length === 0}>
+                        Artist: {artist || 'All'}
+                    </md-outlined-button>
+                </div>
+                <div className="control-group reset-group">
+                    <md-text-button onClick={handleReset} disabled={disabled}>
+                        <md-icon slot="icon">refresh</md-icon>
+                        Reset
+                    </md-text-button>
                 </div>
             </div>
-        </div>
+
+            <FilterDialog
+                open={isGenreDialogOpen}
+                onClose={() => setGenreDialogOpen(false)}
+                title="Filter by Genre"
+                items={availableGenres}
+                selectedValue={genre}
+                onConfirm={setGenre}
+            />
+
+            <FilterDialog
+                open={isArtistDialogOpen}
+                onClose={() => setArtistDialogOpen(false)}
+                title="Filter by Artist"
+                items={uniqueArtists}
+                selectedValue={artist}
+                onConfirm={setArtist}
+            />
+        </>
     );
 };

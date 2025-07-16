@@ -39,6 +39,7 @@ declare module 'react' {
       };
       'md-dialog': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
         open?: boolean;
+        onClosed?: (event?: Event) => void;
       };
       'md-circular-progress': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
         value?: number;
@@ -55,9 +56,25 @@ declare module 'react' {
         toggle?: boolean;
         selected?: boolean;
       };
-      'md-circular-progress': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>,HTMLElement> & {
-        indeterminate?: boolean;
-        value?: number;
+
+      'md-chip-set': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+
+      'md-filter-chip': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+        label?: string;
+        selected?: boolean;
+        disabled?: boolean;
+      };
+      
+
+      'md-outlined-select': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+        value?: string;
+        disabled?: boolean;
+        label?: string;
+      };
+
+      'md-menu-item': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+        value?: string;
+        headline?: string;
       };
     }
   }

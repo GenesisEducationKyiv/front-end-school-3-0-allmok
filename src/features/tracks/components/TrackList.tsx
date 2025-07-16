@@ -53,34 +53,30 @@ export const TrackList: React.FC<TrackListProps> = ({
         <div className="track-list-container" data-loading={isLoading} aria-busy={isLoading}>
             <div className="track-list-header">
                 <div className="select-all-container">
-                    <input
-                        type="checkbox"
+                    <md-checkbox
                         id="select-all"
                         checked={selectionProps.isAllSelected}
-                        onChange={selectionProps.handleSelectAllClick}
+                        onInput={selectionProps.handleSelectAllClick} 
                         data-testid="select-all"
-                        className="select-all-checkbox" 
                     />
-                    <label htmlFor="select-all" className="select-all-label">
-                        Select all on this page
-                    </label>
+                    <label htmlFor="select-all">Select all on this page</label>
                 </div>
  
                 <div className="bulk-actions-container"> 
                     {selectedTrackIds.size > 0 && (
-                        <button
+                        <md-filled-button
                             onClick={handleBulkDeleteClick}
                             disabled={isBulkDeleting}
-                            className="bulk-delete-button"
                             data-testid="bulk-delete-button"
                         >
+                            <md-icon slot="icon">delete</md-icon>
                             {isBulkDeleting ? 'Deleting...' : `Delete Selected (${selectedTrackIds.size})`}
-                        </button>
+                        </md-filled-button>
                     )}
                 </div>
             </div>
 
-            <div className="track-list">
+             <div className="track-list-items">
               {isLoading ? (
                 <LoadingIndicator data-testid="loading-tracks"/>
               ) : (

@@ -56,25 +56,30 @@ declare module 'react' {
         toggle?: boolean;
         selected?: boolean;
       };
-
       'md-chip-set': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
-
       'md-filter-chip': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
         label?: string;
         selected?: boolean;
         disabled?: boolean;
       };
-      
-
       'md-outlined-select': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
         value?: string;
         disabled?: boolean;
         label?: string;
       };
-
       'md-menu-item': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
         value?: string;
         headline?: string;
+      }
+      'md-outlined-card': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+      'md-checkbox': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+        checked?: boolean;
+        disabled?: boolean;
+        indeterminate?: boolean;
+        onInput?: (event: Event) => void;
+      };
+      'md-assist-chip': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+        label?: string;
       };
     }
   }

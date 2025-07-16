@@ -1,90 +1,36 @@
 .track-list-container {
     margin-top: 1.5rem; 
-  }
-  
-  .track-list-empty {
-      color: var(--text-secondary);
-      text-align: center;
-      padding: 2rem 0;
-  }
-  
+}
 
-  .track-list-header {
-    display: flex;
-    justify-content: space-between; 
-    align-items: center;
-    padding: 0.5rem 1rem; 
-    margin-bottom: 0.5rem; 
-    min-height: 38px; 
-  }
-  
-  .select-all-container {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem; 
-  }
-  
-  .select-all-checkbox {
-      cursor: pointer;
-      width: 18px;
-      height: 18px;
-  }
-  
-  .select-all-label {
-    color: var(--text-secondary);
-    cursor: pointer;
-    font-size: 0.9em;
-  }
-  
-  .bulk-delete-button {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    border-radius: 0.5rem;
-    line-height: 1.2;
-    min-height: 32px; 
-    display: inline-flex;
-    align-items: center;
-    background-color: #ef4444; 
-    color: white;
-    border: none;
-    transition: background-color 0.2s ease;
-    cursor: pointer;
-  }
-  .bulk-delete-button:hover:not(:disabled) {
-      background-color: #dc2626; 
-  }
-  .bulk-delete-button:disabled {
-      background-color: #b91c1c;
-      opacity: 0.7;
-      cursor: not-allowed;
-  }
-  
+.track-list-empty {
+    color: var(--md-sys-color-on-surface-variant);
+    text-align: center;
+    padding: 2rem 0;
+}
 
-  .track-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem; 
-  }
+.track-list-header {
+  display: flex;
+  justify-content: space-between; 
+  align-items: center;
+  padding: 0.5rem 1rem; 
+  margin-bottom: 0.5rem; 
+  min-height: 48px; 
+}
   
-  .track-item {
-    display: flex;
-    align-items: center;
-    background-color: var(--bg-secondary);
-    padding: 1rem; 
-    border-radius: 0.75rem;
-  }
-  
-  .track-item .track-item-checkbox { 
-    margin-right: 1rem; 
-    cursor: pointer;
-     width: 18px;
-     height: 18px;
-     flex-shrink: 0;
-  }
+.select-all-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem; 
+}
 
-  @media (max-width: 600px) {
-  .track-list-header {
-    padding: 0.5rem;
-  }
+.select-all-container label {
+  color: var(--md-sys-color-on-surface-variant);
+  cursor: pointer;
+  font-size: 14px;
+}
+  
+.track-list-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; 
 }

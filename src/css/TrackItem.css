@@ -1,142 +1,68 @@
-.track-item {
-  display: flex;
+.track-item-card {
+  --md-outlined-card-container-color: var(--md-sys-color-surface-container-low);
+  --md-outlined-card-outline-width: 1px;
+  padding: 0; 
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.track-item-card.selected {
+  --md-outlined-card-container-color: var(--md-sys-color-surface-container-high);
+  --md-outlined-card-outline-color: var(--md-sys-color-primary);
+}
+
+.track-item-card.active {
+  --md-outlined-card-outline-color: var(--md-sys-color-tertiary);
+}
+
+.track-item-card:hover:not(.selected) {
+  --md-outlined-card-container-color: var(--md-sys-color-surface-container);
+}
+
+.track-item-grid {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto; 
+  grid-template-rows: auto auto auto; 
+  grid-template-areas:
+    "selection cover info   actions"
+    "selection cover genres actions"
+    "waveform  waveform waveform waveform";
   align-items: center;
-  background-color: var(--bg-secondary);
+  gap: 0.5rem 1rem;
   padding: 1rem;
-  border-radius: 0.75rem;
-  border: 1px solid transparent;
-  transition: background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-  gap: 1rem;
-}
-
-.track-item:hover {
-  background-color: #2a2a2a;
-  border-color: var(--border-color);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-.track-item-checkbox {
-  cursor: pointer;
 }
 
 .track-item-cover {
-  width: 50px;
-  height: 50px;
+  width: 56px;
+  height: 56px;
   object-fit: cover;
-  border-radius: 0.5rem;
-  flex-shrink: 0;
-  background-color: #555;
+  border-radius: 8px;
+  background-color: var(--md-sys-color-surface-variant);
 }
 
-.track-item-content {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  overflow: hidden;
-}
+.track-item-selection { grid-area: selection; }
+.track-item-cover { grid-area: cover; }
+.track-item-info { grid-area: info; min-width: 0; } 
+.track-item-actions { grid-area: actions; }
+.track-item-genres { grid-area: genres; }
+.track-item-waveform { grid-area: waveform; }
 
-.track-item-main-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start; 
-  gap: 1rem;
-}
-
-.track-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-grow: 1;
-  min-width: 0;
-  padding-bottom: 0.25rem;
-}
-
-
-
-.track-info span[data-testid*="-title"] {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex-shrink: 1;
-}
-
-.track-info span[data-testid*="-artist"] {
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--text-primary);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.track-album {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex-shrink: 1;
-}
-
-.track-item.active .track-info span[data-testid*="-artist"],
-.track-item.active .track-info span[data-testid*="-title"] {
-  color: var(--accent-primary);
-}
-
-.track-genres {
+.track-item-genres .track-genres {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.25rem;
-}
-.no-genres {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  font-style: italic;
-}
-
-.waveform-container {
-  width: 100%;
-  height: 50px;
-  margin-top: 10px;
-  min-height: 52px;
+  gap: 0.5rem;
 }
 
 
-
-@media (max-width: 600px) {
-
-.track-item {
-  flex-direction: column;
-  align-items: flex-start; 
-}
-
-.track-item-main-info {
-  flex-direction: column;
-  align-items: flex-start;
-  width: 100%; 
-  gap: 0.75rem;
-}
-
-.track-info {
-  width: 100%;
-  padding-bottom: 0;
-}
-
-.track-actions {
-  justify-content: flex-start;
-  padding-right: 0;
-  margin-top: 0.5rem;
-}
-
-.track-info span[data-testid*="-title"] {
-  font-size: 1rem; 
-}
-
-.track-info span[data-testid*="-artist"] {
-  font-size: 0.9rem; 
-}
+@media (max-width: 700px) {
+  .track-item-grid {
+    grid-template-columns: auto 1fr auto; 
+    grid-template-rows: auto auto auto auto;
+    grid-template-areas:
+      "selection info actions"
+      "cover cover cover"
+      "genres genres genres"
+      "waveform waveform waveform";
+    padding: 0.75rem;
+  }
+  .track-item-cover { margin: 0.5rem 0; }
 }

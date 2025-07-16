@@ -14,13 +14,14 @@ import { useWaveSurfer } from "../../tracks/components/hooks/useWaveSurfer";
 import { getAbsoluteFileUrl } from "../../../utils/url";
 import TrackImage from "../../../components/TrackImage";
 import TrackInfo from "../../../components/TrackInfo";
-import TrackActions from "../../../components/TrackActions";
+import TrackActions from '../../../components/TrackActions';
 import TrackGenres from "../../../components/TrackGenres";
 
 const TrackWaveform = lazy(() => import("../../../components/TrackWaveform"));
 
 import "../../../css/TrackItem.css";
 import "../../../css/PlayPause.css";
+
 
 interface TrackItemProps {
   trackToUpload: Track;
@@ -99,34 +100,31 @@ const TrackItem: React.FC<TrackItemProps> = ({
     onSelectToggle(trackToUpload.id);
   }, [onSelectToggle, trackToUpload.id]);
 
-  const trackItemClass = clsx("track-item", {
-    selected: isSelected,
-    active: isThisTrackPlayingGlobally,
-  });
 
   return (
-    <div
+    <md-outlined-card
       ref={itemRef}
-      className={trackItemClass}
+      className={clsx('track-item-card', { 'selected': isSelected, 'active': isThisTrackPlayingGlobally })}
       data-testid={`track-item-${trackToUpload.id}`}
     >
-      <input
-        type="checkbox"
-        checked={isSelected}
-        onChange={handleSelectChange}
-        className="track-item-checkbox"
-        data-testid={`track-checkbox-${trackToUpload.id}`}
-        aria-label={`Select track ${trackToUpload.title}`}
-      />
+      <div className="track-item-grid">
+        <div className="track-item-selection">
+          <md-checkbox
+            checked={isSelected}
+            onClick={handleSelectChange} 
+            aria-label={`Select track ${trackToUpload.title}`}
+          />
+        </div>
 
-      <TrackImage
-        imageUrl={trackToUpload.coverImage}
-        trackTitle={trackToUpload.title}
-        trackId={trackToUpload.id}
-      />
+        <div className="track-item-cover">
+           <TrackImage
+              imageUrl={trackToUpload.coverImage}
+              trackTitle={trackToUpload.title}
+              trackId={trackToUpload.id}
+            />
+        </div>
 
-      <div className="track-item-content">
-        <div className="track-item-main-info">
+        <div className="track-item-info">
           <TrackInfo
             trackId={trackToUpload.id}
             artist={trackToUpload.artist}
@@ -140,36 +138,41 @@ const TrackItem: React.FC<TrackItemProps> = ({
             onPlay={requestPlay}
             onPause={requestPause}
           />
-
-          <TrackActions
-            trackId={trackToUpload.id}
-            hasAudioFile={!!trackToUpload.audioFile}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onUpload={onUpload}
-            onDeleteFile={onDeleteFile}
-          />
+        </div>
+        
+        <div className="track-item-actions">
+           <TrackActions
+                trackId={trackToUpload.id}
+                hasAudioFile={!!trackToUpload.audioFile}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onUpload={onUpload}
+                onDeleteFile={onDeleteFile}
+            />
         </div>
 
-        <TrackGenres
-          trackId={trackToUpload.id}
-          genres={trackToUpload.genres || []}
-          onGenreRemove={onGenreRemove}
-        />
+        <div className="track-item-genres">
+            <TrackGenres
+              trackId={trackToUpload.id}
+              genres={trackToUpload.genres || []}
+              onGenreRemove={onGenreRemove}
+            />
+        </div>
 
         {trackToUpload.audioFile && isIntersecting && (
-          <Suspense
-          >
-            <TrackWaveform
-              trackId={trackToUpload.id}
-              waveformContainerRef={setWaveformContainer}
-              isReady={isWsReady}
-              error={error}
-            />
-          </Suspense>
+           <div className="track-item-waveform">
+              <Suspense>
+                 <TrackWaveform
+                    trackId={trackToUpload.id}
+                    waveformContainerRef={setWaveformContainer}
+                    isReady={isWsReady}
+                    error={error}
+                 />
+              </Suspense>
+           </div>
         )}
       </div>
-    </div>
+    </md-outlined-card>
   );
 };
 

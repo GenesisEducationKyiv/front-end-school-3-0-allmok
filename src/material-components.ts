@@ -15,3 +15,6 @@ import '@material/web/menu/menu-item.js';
 import '@material/web/dialog/dialog.js';
 import '@material/web/chips/chip-set.js';
 import '@material/web/chips/filter-chip.js';
+import '@material/web/labs/card/outlined-card.js';
+import '@material/web/checkbox/checkbox.js';
+import '@material/web/chips/assist-chip.js';

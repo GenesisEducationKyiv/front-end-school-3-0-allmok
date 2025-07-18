@@ -29,6 +29,7 @@ export const TrackFormActions: React.FC<TrackFormActionsProps> = ({
           type="button"
           onClick={onCancel}
           disabled={isDisabled}
+          data-testid="track-form-cancel-button"
         >
           Cancel
         </md-text-button>
@@ -37,6 +38,7 @@ export const TrackFormActions: React.FC<TrackFormActionsProps> = ({
         type="button"
         onClick={handleFormSubmit}
         disabled={isDisabled}
+        data-testid="track-form-submit-button" 
       >
         {isEditing
           ? (isDisabled ? 'Saving...' : 'Save')

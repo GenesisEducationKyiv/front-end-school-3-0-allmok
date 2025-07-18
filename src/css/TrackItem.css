@@ -39,7 +39,6 @@
   background-color: var(--md-sys-color-surface-variant);
 }
 
-.track-item-selection { grid-area: selection; }
 .track-item-cover { grid-area: cover; }
 .track-item-info { grid-area: info; min-width: 0; } 
 .track-item-actions { grid-area: actions; }
@@ -52,8 +51,30 @@
   gap: 0.5rem;
 }
 
+.track-item-selection {
+  transition: opacity 0.2s ease-in-out;
+  grid-area: selection;
+}
 
-@media (max-width: 700px) {
+.track-item-selection {
+  opacity: 0;
+}
+
+.track-item-card:hover .track-item-selection {
+  opacity: 1;
+}
+
+.track-item-card.selected .track-item-selection {
+  opacity: 1;
+}
+
+.track-item-selection {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 600px) {
   .track-item-grid {
     grid-template-columns: auto 1fr auto; 
     grid-template-rows: auto auto auto auto;

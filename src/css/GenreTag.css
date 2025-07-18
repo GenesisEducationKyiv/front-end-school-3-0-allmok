@@ -1,37 +1,13 @@
-.genre-tag {
-  display: inline-flex;
-  align-items: center;
-  background-color: rgba(255, 255, 255, 0.05);
-  color: var(--text-secondary);
-  padding: 0.3rem 0.6rem 0.3rem 0.8rem; 
-  border-radius: 9999px;
-  font-size: 0.875rem; 
-  font-weight: 500;
-  line-height: 1.3;
-  white-space: nowrap;
-  position: relative;
-  transition: background-color 0.2s ease;
-  margin-right: 4px;
-  margin-bottom: 4px; 
+
+.track-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px; 
 }
 
-/* delete*/
-.genre-tag .genre-tag-remove {
-  background: none;
-  background-color: transparent !important;
-  border: none !important;
-  padding: 0;
-  margin: 0;
-  margin-left: 0.4rem;
-  cursor: pointer;
-  color: var(--text-secondary);
-  font-size: 1.2em; 
-  line-height: 1;
-  transition: color 0.2s ease;
-}
-
-.genre-tag .genre-tag-remove:hover,
-.genre-tag .genre-tag-remove:focus {
-  color: var(--text-primary);
-  outline: none;
+.track-genres .no-genres {
+  font-style: italic;
+  color: var(--md-sys-color-on-surface-variant); 
+  font-size: 0.875rem;
 }

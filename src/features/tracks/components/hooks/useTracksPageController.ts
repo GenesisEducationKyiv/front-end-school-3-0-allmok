@@ -23,7 +23,6 @@ interface GetGenresQueryData {
 export const useTracksPageController = () => {
   const { data: tracksData, loading: isLoading, error, refetch } = useTracksQuery<GetTracksQueryData>();
   const { data: genresData } = useGenresQuery<GetGenresQueryData>();
-  
   const {
     createTrack,
     updateTrack,
@@ -33,16 +32,13 @@ export const useTracksPageController = () => {
     deleteFile,
     mutationState,
   } = useTrackMutations();
-
   const { page, setPage } = useFilterStore();
   const { activeModal, payload, openModal, closeModal } = useModalStore();
   const { selectedIds, toggleId, selectAll, clearSelection } = useSelectionStore();
 
   const tracks = useMemo(() => tracksData?.tracks.data ?? [], [tracksData]);
   const meta = useMemo(() => tracksData?.tracks.meta, [tracksData]);
-  
   const isBusy = isLoading || mutationState.isAnyLoading;
-
   const availableGenres = useMemo(() => genresData?.genres ?? [], [genresData]);
   const uniqueArtists = useMemo(() => {
     return [...new Set(tracks.map((t) => t.artist))].sort();
@@ -64,19 +60,27 @@ export const useTracksPageController = () => {
     },
     [findTrackById, updateTrack]
   );
-  
+
   const handleBulkDelete = useCallback(() => {
     void bulkDelete(Array.from(selectedIds));
   }, [bulkDelete, selectedIds]);
 
-  const handleSelectAllClick = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const allIdsOnPage = tracks.map((t) => t.id);
-    if (e.target.checked) {
-      selectAll(allIdsOnPage);
-    } else {
-      clearSelection();
-    }
-  }, [tracks, selectAll, clearSelection]);
+  const handleSelectAllClick = useCallback(
+    (e: React.MouseEvent<HTMLElement>) => {
+      const checkbox = e.currentTarget.querySelector('input[type="checkbox"]');
+            if (checkbox instanceof HTMLInputElement) {
+        const allIdsOnPage = tracks.map((t) => t.id);
+        
+        if (checkbox.checked) {
+          selectAll(allIdsOnPage);
+        } else {
+          clearSelection();
+        }
+      }
+    },
+    [tracks, selectAll, clearSelection]
+  );
+
 
   return {
     isLoading,

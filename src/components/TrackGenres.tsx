@@ -1,5 +1,6 @@
 import React, { useCallback, memo } from "react";
-import GenreTag from "../components/GenreTag/GenreTag";
+import { RemovableChip } from "./RemovableChip"; 
+import "../css/GenreTag.css"; 
 
 interface TrackGenresProps {
   trackId: string;
@@ -27,13 +28,15 @@ const TrackGenres: React.FC<TrackGenresProps> = ({
 
   return (
     <div className="track-genres">
-      {genres.map((genre) => (
-        <GenreTag
-          key={genre}
-          genre={genre}
-          onRemove={handleInternalGenreRemove}
-        />
-      ))}
+      <md-chip-set>
+        {genres.map((genre) => (
+          <RemovableChip
+            key={genre}
+            genre={genre}
+            onRemove={handleInternalGenreRemove}
+          />
+        ))}
+      </md-chip-set>
     </div>
   );
 };

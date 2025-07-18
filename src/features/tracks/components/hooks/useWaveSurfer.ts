@@ -36,7 +36,16 @@ export const useWaveSurfer = ({
     setError(err.message || 'Unknown WaveSurfer error');
     setIsReady(false);
   }, [trackId]);
-  const handleFinish = useCallback(() => onFinish(trackId), [onFinish, trackId]);
+
+   const handleFinish = useCallback(() => {
+    onFinish(trackId);
+    const ws = wavesurferRef.current;
+    if (ws) {
+      ws.seekTo(1);
+    }
+  }, [onFinish, trackId]); 
+
+
 
   useEffect(() => {
     if (enabled && containerNode && audioUrl) {

@@ -48,7 +48,7 @@ export const ActiveTrackDisplay: React.FC = () => {
 
   return (
     <LiveTrackContainer>
-      <span className="live-track-label">Live:</span>
+      <span className="live-track-label">Live: </span>
       <span>
         {`${trackInfo.title} - ${trackInfo.artist}`}
       </span>

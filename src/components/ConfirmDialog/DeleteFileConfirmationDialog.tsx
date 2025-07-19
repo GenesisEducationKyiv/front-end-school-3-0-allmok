@@ -5,9 +5,9 @@ import { Track } from '../../types/track';
 interface DeleteFileConfirmationDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (trackId: string) => Promise<void> | void;
+  onConfirm: () => void;
   trackToDeleteFile: Track | null;
-  isLoading: boolean;
+  isLoading?: boolean;
 }
 
 export const DeleteFileConfirmationDialog: React.FC<DeleteFileConfirmationDialogProps> = ({
@@ -15,55 +15,27 @@ export const DeleteFileConfirmationDialog: React.FC<DeleteFileConfirmationDialog
   onClose,
   onConfirm,
   trackToDeleteFile,
-  isLoading
+  isLoading = false,
 }) => {
-  const handleConfirmLogic = async () => { 
-    if (trackToDeleteFile) {
-      try {
-        const result = onConfirm(trackToDeleteFile.id);
-        if (result instanceof Promise) {
-          await result;
-        }
-      } catch (error) {
-        console.error("Error during onConfirm in DeleteFileConfirmationDialog:", error);
-      }
-    } else {
-      console.error("Attempted to confirm file deletion without a track.");
-      onClose(); 
-    }
-  };
-
-  if (!isOpen || !trackToDeleteFile) {
-    return null;
-  }
-
-  if (!trackToDeleteFile.audioFile) {
-    console.warn(`Attempted to open delete file dialog for track "${trackToDeleteFile.title}" which has no audio file.`);
-    return null;
-  }
+  if (!trackToDeleteFile) return null;
 
   return (
     <ConfirmDialog
       isOpen={isOpen}
       onClose={onClose}
-      onConfirm={() => {
-        void handleConfirmLogic();
-      }}
-      title="Confirm File Deletion"
+      onConfirm={onConfirm}
+      title="Delete Track File"
       message={
-        <>
-          Are you sure you want to delete the audio file for the track: <br />
-          <strong>{trackToDeleteFile.title} - {trackToDeleteFile.artist}</strong>?
-          <br />
-          <span style={{ fontSize: '0.85em', color: 'var(--text-secondary)' }}>
-            (Track metadata will remain.)
-          </span>
-        </>
+        <span>
+          Are you sure you want to delete the audio file for{' '}
+          <strong>“{trackToDeleteFile.title}”</strong>?
+          The track metadata will be kept.
+        </span>
       }
+      confirmText="Delete File"
+      cancelText="Cancel"
       isLoading={isLoading}
-      confirmText="Yes, delete file"
-      cancelText="No, cancel"
-      data-testid="delete-file-confirm-dialog"
+      data-testid="delete-file-dialog"
     />
   );
 };

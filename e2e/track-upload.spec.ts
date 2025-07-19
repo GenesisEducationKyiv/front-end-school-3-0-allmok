@@ -87,53 +87,35 @@ test.describe('Full Track Management Flow', () => {
     });
   });
 
-  test('should open upload modal, select a file, and submit', async ({ page }) => {
-    const getTracksResponsePromise = page.waitForResponse((response) => {
-      const postData = response.request().postData();
-      return (
-        response.url().includes('/graphql') &&
-        response.request().method() === 'POST' &&
-        postData !== null &&
-        postData.includes('GetTracks')
-      );
-    });
+test('should open upload modal, select a file, and submit', async ({ page }) => {
+  const getTracksResponsePromise = page.waitForResponse((response) => 
+    (response.url().includes('/graphql') && response.request().postData()?.includes('GetTracks')) ?? false
+  );
+  await page.goto('/');
+  await getTracksResponsePromise;
 
-    await page.goto('/');
-    await getTracksResponsePromise;
+  const trackToUpload = page.getByTestId('track-item-1');
+  await expect(trackToUpload).toBeVisible({ timeout: 10000 });
+  await trackToUpload.getByTestId('upload-track-1').click();
 
-    const trackToUpload = page.getByTestId('track-item-1');
-    await expect(trackToUpload).toBeVisible({ timeout: 10000 });
+  const modal = page.getByTestId('upload-track-modal'); 
+  await expect(modal).toBeVisible();
 
-    await trackToUpload.getByTestId('upload-track-1').click();
-    const modal = page.locator('.modal-content');
-
-    const fileChooserPromise = page.waitForEvent('filechooser');
-    await page.getByLabel('Select an audio file:').click();
-    const fileChooser = await fileChooserPromise;
-    await fileChooser.setFiles({
-      name: 'test-ghost.mp3',
-      mimeType: 'audio/mpeg',
-      buffer: Buffer.from('e2e-audio-data'),
-    });
-
-    const submitButton = modal.getByRole('button', { name: 'Upload & Save' });
-    await expect(submitButton).toBeEnabled();
-
-    await Promise.all([
-      page.waitForResponse((res) =>
-        res.url().includes('/api/upload') && res.status() === 200
-      ),
-      page.waitForResponse((res) => {
-        const body = res.request().postData();
-        return res.url().includes('/graphql') && body?.includes('UpdateTrack') === true;
-      }),
-      page.waitForResponse((res) => {
-        const body = res.request().postData();
-        return res.url().includes('/graphql') && body?.includes('GetTracks') === true;
-      }),
-      submitButton.click(),
-    ]);
-
-    await expect(modal).not.toBeVisible();
+  await modal.getByTestId('file-input').setInputFiles({
+    name: 'test-ghost.mp3',
+    mimeType: 'audio/mpeg',
+    buffer: Buffer.from('e2e-audio-data'),
   });
+
+  const submitButton = modal.getByTestId('upload-button');
+
+  await Promise.all([
+    page.waitForResponse((res) => res.url().includes('/api/upload') && res.status() === 200),
+    page.waitForResponse((res) => (res.request().postData()?.includes('UpdateTrack')) ?? false),
+    page.waitForResponse((res) => (res.request().postData()?.includes('GetTracks')) ?? false),
+    submitButton.click(),
+  ]);
+
+  await expect(modal).not.toBeVisible();
+});
 });

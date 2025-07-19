@@ -23,7 +23,6 @@ interface GetGenresQueryData {
 export const useTracksPageController = () => {
   const { data: tracksData, loading: isLoading, error, refetch } = useTracksQuery<GetTracksQueryData>();
   const { data: genresData } = useGenresQuery<GetGenresQueryData>();
-  
   const {
     createTrack,
     updateTrack,
@@ -33,16 +32,13 @@ export const useTracksPageController = () => {
     deleteFile,
     mutationState,
   } = useTrackMutations();
-
   const { page, setPage } = useFilterStore();
   const { activeModal, payload, openModal, closeModal } = useModalStore();
   const { selectedIds, toggleId, selectAll, clearSelection } = useSelectionStore();
 
   const tracks = useMemo(() => tracksData?.tracks.data ?? [], [tracksData]);
   const meta = useMemo(() => tracksData?.tracks.meta, [tracksData]);
-  
   const isBusy = isLoading || mutationState.isAnyLoading;
-
   const availableGenres = useMemo(() => genresData?.genres ?? [], [genresData]);
   const uniqueArtists = useMemo(() => {
     return [...new Set(tracks.map((t) => t.artist))].sort();
@@ -64,19 +60,15 @@ export const useTracksPageController = () => {
     },
     [findTrackById, updateTrack]
   );
-  
+
   const handleBulkDelete = useCallback(() => {
     void bulkDelete(Array.from(selectedIds));
   }, [bulkDelete, selectedIds]);
 
-  const handleSelectAllClick = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSelectAllOnPage = useCallback(() => {
     const allIdsOnPage = tracks.map((t) => t.id);
-    if (e.target.checked) {
-      selectAll(allIdsOnPage);
-    } else {
-      clearSelection();
-    }
-  }, [tracks, selectAll, clearSelection]);
+    selectAll(allIdsOnPage);
+  }, [tracks, selectAll]);
 
   return {
     isLoading,
@@ -99,8 +91,9 @@ export const useTracksPageController = () => {
     findTrackById,
     handleGenreRemove,
     handleBulkDelete,
-    handleSelectAllClick,
+    handleSelectAllOnPage,
     toggleId,
+    clearSelection,
     createTrack,
     updateTrack,
     deleteTrack,

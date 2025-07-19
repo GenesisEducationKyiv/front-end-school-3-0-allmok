@@ -32,3 +32,7 @@ dist-ssr
 
 # hw 8 build stats
 build-stats.html
+
+#storybook
+*storybook.log
+storybook-static

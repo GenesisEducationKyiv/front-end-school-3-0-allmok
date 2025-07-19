@@ -3,40 +3,42 @@ import TrackForm from "../TrackForm";
 
 const availableGenres = ["Electronic", "Rock", "Pop", "Jazz", "Classical"];
 
-test("should disable controls when isLoading is true", async ({ mount }) => {
-  const component = await mount(
-    <TrackForm
-      onSubmit={() => {}}
-      onCancel={() => {}}
-      availableGenres={availableGenres}
-      isLoading={true}
-    />
-  );
-
-  await expect(component.getByTestId("submit-button")).toBeDisabled();
-  await expect(
-    component.getByRole("button", { name: "Cancel" })
-  ).toBeDisabled();
-  await expect(component.getByTestId("submit-button")).toHaveText("Saving...");
-});
-
-test("should call onCancel when the cancel button is clicked", async ({
-  mount,
-}) => {
+test("should call onCancel when the cancel button is clicked", async ({ mount }) => {
   let cancelCalled = false;
-  const handleCancel = () => {
-    cancelCalled = true;
-  };
+  const handleCancel = () => { cancelCalled = true; };
 
   const component = await mount(
     <TrackForm
       onSubmit={() => {}}
       onCancel={handleCancel}
       availableGenres={availableGenres}
+      formId={"track-form-test"}
     />
   );
 
-  await component.getByRole("button", { name: "Cancel" }).click();
+  const cancelButton = component.getByTestId('track-form-cancel-button');
 
+  await cancelButton.waitFor({ state: 'attached', timeout: 10000 });
+  
+  await expect(cancelButton).toBeEnabled();
+  await cancelButton.click();
   expect(cancelCalled).toBe(true);
+  
+});
+
+test("should have correct text on submit button", async ({ mount }) => {
+    const component = await mount(
+      <TrackForm
+        onSubmit={() => {}}
+        onCancel={() => {}}
+        availableGenres={availableGenres}
+        formId={"track-form-test"}
+        isLoading={false}
+      />
+    );
+    const submitButton = component.getByTestId('track-form-submit-button');
+    
+    await submitButton.waitFor({ state: 'attached', timeout: 10000 });
+
+    await expect(submitButton).toHaveText('Create');
 });

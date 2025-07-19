@@ -21,7 +21,7 @@ const TrackImage: React.FC<TrackImageProps> = ({
 
   return (
     <img
-      src={imageUrl ?? defaultCover}
+      src={imageUrl?.trim() ? imageUrl : defaultCover}
       alt={`Cover for ${trackTitle}`}
       className="track-item-cover"
       onError={handleImageError}

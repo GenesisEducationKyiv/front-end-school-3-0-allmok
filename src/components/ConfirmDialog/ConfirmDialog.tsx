@@ -1,16 +1,15 @@
-import React, { ReactNode } from 'react';
-import Modal from '../modal/Modal'; 
-import '../../css/ConfirmDialog.css'; 
+import React, { ReactNode, useRef, useEffect } from 'react';
 
 interface ConfirmDialogProps {
-  isOpen: boolean;          
-  onClose: () => void;      
-  onConfirm: () => void; 
-  title: string;  
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  title: string;
   message: ReactNode;
   confirmText?: string;
   cancelText?: string;
   isLoading?: boolean;
+  'data-testid'?: string;
 }
 
 const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
@@ -21,40 +20,47 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   message,
   confirmText = "Confirm",
   cancelText = "Cancel",
-  isLoading = false
+  isLoading = false,
+  'data-testid': dataTestId,
 }) => {
+  const dialogRef = useRef<HTMLElement & { show: () => void; close: () => void }>(null);
 
-  if (!isOpen) {
-    return null;
-  }
+  useEffect(() => {
+    const dialogNode = dialogRef.current;
+    if (dialogNode) {
+      if (isOpen) {
+        dialogNode.show();
+      } else {
+        dialogNode.close();
+      }
+    }
+  }, [isOpen]);
 
   return (
- 
-    <Modal isOpen={isOpen} onClose={onClose} data-testid="confirm-dialog">
-      <div className="confirm-dialog-content">
-        <h2 className="confirm-dialog-title">{title}</h2>
-        <div className="confirm-dialog-message">{message}</div>
-        <div className="confirm-dialog-actions">
-          <button
-            onClick={onConfirm}
-            className="confirm-button" 
-            data-testid="confirm-delete" 
-            disabled={isLoading} 
-          >
-            {isLoading ? 'Processing...' : confirmText}
-          </button>
-
-          <button
-            onClick={onClose}
-            className="cancel-button" 
-            data-testid="cancel-delete" 
-            disabled={isLoading} 
-          >
-            {cancelText}
-          </button>
-        </div>
+    <md-dialog
+      ref={dialogRef}
+      onClosed={onClose}
+      data-testid={dataTestId ?? 'confirm-dialog'}
+    >
+      <div slot="headline">{title}</div>
+      <div slot="content">{message}</div>
+      <div slot="actions">
+        <md-text-button
+          onClick={onClose}
+          disabled={isLoading}
+          data-testid="confirm-dialog-cancel-button"
+        >
+          {cancelText}
+        </md-text-button>
+        <md-filled-button
+          onClick={onConfirm}
+          disabled={isLoading}
+          data-testid="confirm-dialog-confirm-button"
+        >
+          {isLoading ? 'Processing...' : confirmText}
+        </md-filled-button>
       </div>
-    </Modal>
+    </md-dialog>
   );
 };
 

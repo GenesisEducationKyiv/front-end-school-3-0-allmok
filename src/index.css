@@ -85,7 +85,7 @@ button:active {
   transform: scale(0.97); 
 }
 
-@media (prefers-color-scheme: light) {
+@media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
   }

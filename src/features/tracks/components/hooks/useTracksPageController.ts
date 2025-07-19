@@ -65,22 +65,10 @@ export const useTracksPageController = () => {
     void bulkDelete(Array.from(selectedIds));
   }, [bulkDelete, selectedIds]);
 
-  const handleSelectAllClick = useCallback(
-    (e: React.MouseEvent<HTMLElement>) => {
-      const checkbox = e.currentTarget.querySelector('input[type="checkbox"]');
-            if (checkbox instanceof HTMLInputElement) {
-        const allIdsOnPage = tracks.map((t) => t.id);
-        
-        if (checkbox.checked) {
-          selectAll(allIdsOnPage);
-        } else {
-          clearSelection();
-        }
-      }
-    },
-    [tracks, selectAll, clearSelection]
-  );
-
+  const handleSelectAllOnPage = useCallback(() => {
+    const allIdsOnPage = tracks.map((t) => t.id);
+    selectAll(allIdsOnPage);
+  }, [tracks, selectAll]);
 
   return {
     isLoading,
@@ -103,8 +91,9 @@ export const useTracksPageController = () => {
     findTrackById,
     handleGenreRemove,
     handleBulkDelete,
-    handleSelectAllClick,
+    handleSelectAllOnPage,
     toggleId,
+    clearSelection,
     createTrack,
     updateTrack,
     deleteTrack,

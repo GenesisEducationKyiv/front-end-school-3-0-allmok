@@ -3,18 +3,15 @@ import TrackItem from './TrackItem';
 import LoadingIndicator from '../../../components/LoadingIndicator';
 import { Track } from '../../../types/track';
 import '../../../css/TrackList.css';
-
-interface SelectionProps {
-  isAllSelected: boolean;
-  handleSelectAllClick: (event: React.MouseEvent<HTMLElement>) => void; 
-  handleSelectToggle: (id: string) => void;
-}
+import { SelectionActionsBar } from '../../../components/SelectionActionsBar';
 
 interface TrackListProps {
   trackToUpload: Track[];
   isLoading: boolean;
   selectedTrackIds: Set<string>;
-  selectionProps: SelectionProps;
+  onSelectToggle: (id: string) => void;
+  onSelectAllOnPage: () => void; 
+  onClearSelection: () => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onUpload: (id: string) => void;
@@ -28,7 +25,9 @@ export const TrackList: React.FC<TrackListProps> = ({
   trackToUpload,
   isLoading,
   selectedTrackIds,
-  selectionProps,
+  onSelectToggle,
+  onSelectAllOnPage, 
+  onClearSelection,
   onEdit,
   onDelete,
   onUpload,
@@ -50,29 +49,7 @@ export const TrackList: React.FC<TrackListProps> = ({
 
   return (
     <div className="track-list-container" data-loading={isLoading} aria-busy={isLoading}>
-      <div className="track-list-header">
-        <div className="select-all-container">
-          <md-checkbox
-            id="select-all"
-            checked={selectionProps.isAllSelected}
-            onClick={selectionProps.handleSelectAllClick}
-            data-testid="select-all"
-          />
-          <label htmlFor="select-all">Select all on this page</label>
-        </div>
-        <div className="bulk-actions-container">
-          {selectedTrackIds.size > 0 && (
-            <md-filled-button
-              onClick={handleBulkDeleteClick}
-              disabled={isBulkDeleting}
-              data-testid="bulk-delete-button"
-            >
-              <md-icon slot="icon">delete</md-icon>
-              {isBulkDeleting ? 'Deleting...' : `Delete Selected (${selectedTrackIds.size})`}
-            </md-filled-button>
-          )}
-        </div>
-      </div>
+
       <div className="track-list-items">
         {isLoading ? (
           <LoadingIndicator data-testid="loading-tracks"/>
@@ -82,7 +59,7 @@ export const TrackList: React.FC<TrackListProps> = ({
               key={track.id}
               trackToUpload={track}
               isSelected={selectedTrackIds.has(track.id)}
-              onSelectToggle={selectionProps.handleSelectToggle}
+              onSelectToggle={onSelectToggle} 
               onEdit={onEdit}
               onDelete={onDelete}
               onUpload={onUpload}
@@ -91,6 +68,13 @@ export const TrackList: React.FC<TrackListProps> = ({
           ))
         )}
       </div>
+      <SelectionActionsBar
+        count={selectedTrackIds.size}
+        isDeleting={isBulkDeleting}
+        onSelectAll={onSelectAllOnPage}
+        onDeleteSelected={handleBulkDeleteClick}
+        onClearSelection={onClearSelection}
+      />
     </div>
   );
 };

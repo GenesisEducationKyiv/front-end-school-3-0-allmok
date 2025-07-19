@@ -8,8 +8,13 @@ export default defineConfig({
 
   use: {
     trace: 'on-first-retry',
-
     ctViteConfig: {
+      esbuild: {
+        target: 'es2020'
+      },
+      define: {
+        global: 'globalThis'
+      }
     },
     ctTemplateDir: './playwright'
   },

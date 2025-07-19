@@ -18,7 +18,7 @@ export const CreateTrackButton: React.FC<CreateTrackButtonProps> = ({ onClick, d
         disabled={disabled}
         data-testid="create-track-button"
       >
-        <span slot="icon" className="material-symbols-outlined">add</span>
+      <md-icon slot="icon">add</md-icon>
       </md-fab>
     </div>
       );

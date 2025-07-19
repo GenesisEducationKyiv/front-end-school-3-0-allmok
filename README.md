@@ -2,7 +2,8 @@
 
 A single-page application built with React and Vite for managing a personal music track library. It interacts with a provided Node.js backend API to perform CRUD operations, upload audio files, and manage track metadata.
 
-![The main screen of the application](./src/assets/tracks.jpg)
+![The new screen of the application](./src/assets/tracks_new.jpg)
+![The old screen of the application](./src/assets/tracks_old.jpg)
 
 ## 🚀 Tech Stack
 

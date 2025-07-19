@@ -8,11 +8,6 @@ Comparison of the visual style of the old and new versions of the project.
 | -------------------------------------------------- | -------------------------------------------------- |
 | ![The old screen of the application](./src/assets/tracks_old.jpg) | ![The new screen of the application](./src/assets/tracks_new.png) |
 
-Changed Modals for:
-
-|Creating/editing                      | Filter tracks                                   |
-| --------------------------------------------------------- | --------------------------------------------------- |
-| ![Modal Window for Creating/Editing a Track](./src/assets/create_track.png) | ![Track Filtering UI](./src/assets/filter_track.png) |
 
 ## 🚀 Tech Stack
 

@@ -84,7 +84,7 @@ jobs:
         with:
           name: build-logs
           path: |
-            *debug.log* # Змінено для пошуку будь-яких debug логів
+            *debug.log*
           retention-days: 30
 
       - name: Build Docker image

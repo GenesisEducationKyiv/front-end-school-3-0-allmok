@@ -44,6 +44,7 @@ The API should typically be available at `http://localhost:8000`.
 | ----------------------------- | -------------------------------------------------------------------   
 | `pnpm lint`                   | Launches a code check using ESLint.                        |
 | `pnpm type-check`             | Performs TypeScript type checking without compilation.                  |
+| `pnpm run storybook`          | Run Storybook                   |
 
 
 ### Testing

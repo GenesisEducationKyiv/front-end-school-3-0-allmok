@@ -11,13 +11,13 @@ Comparison of the visual style of the old and new versions of the project.
 
 ## 🚀 Tech Stack
 
-*   **Frontend:** React 22, Vite, TypeScript
+*   **Frontend:** React, Vite, TypeScript
 *   **API:** Apollo Client 
 *   **Protocol:** GraphQL (Queries, Mutations, Subscriptions)
 *   **Audio:** WaveSurfer.js (for playback and visualization)
 *   **UI/UX:** Modals, `react-hot-toast` (notifications), Custom Hooks, CSS
-*   **Development environment:** Node.js (recommended v20 LTS), **pnpm** (package manager)
-*   **Global state:** Zustand (for UI state: modal windows, selections)
+*   **Development environment:** Node.js, **pnpm** (package manager)
+*   **Global state:** Zustand
 
 ## ⚙️ Getting Started
 
@@ -37,7 +37,6 @@ The API should typically be available at `http://localhost:8000`.
 4. **Open the application:**
     Navigate to `http://localhost:3000` in your browser.
     
-
 
 ## 📜 Available scripts
 

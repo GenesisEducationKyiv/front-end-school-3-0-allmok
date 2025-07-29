@@ -11,7 +11,7 @@ interface UseWaveSurferOptions {
 }
 
 interface UseWaveSurferReturn {
-  waveformContainerRef: React.RefObject<HTMLDivElement | null>;
+  setWaveformContainer: (node: HTMLDivElement | null) => void;
   isReady: boolean;
   error: string | null;
   playTrack: () => Promise<void>;
@@ -25,80 +25,70 @@ export const useWaveSurfer = ({
   isPlaying,
   enabled = true,
 }: UseWaveSurferOptions): UseWaveSurferReturn => {
-  const waveformContainerRef = useRef<HTMLDivElement>(null);
+  const [containerNode, setContainerNode] = useState<HTMLDivElement | null>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleReady = useCallback(() => {
-    setIsReady(true);
-  }, []);
-
+  const handleReady = useCallback(() => setIsReady(true), []);
   const handleError = useCallback((err: Error) => {
     logger.error(`[useWaveSurfer ${trackId}] WS Error:`, err);
     setError(err.message || 'Unknown WaveSurfer error');
     setIsReady(false);
   }, [trackId]);
 
-  const handleFinish = useCallback(() => {
+   const handleFinish = useCallback(() => {
     onFinish(trackId);
-  }, [onFinish, trackId]);
+    const ws = wavesurferRef.current;
+    if (ws) {
+      ws.seekTo(1);
+    }
+  }, [onFinish, trackId]); 
+
+
 
   useEffect(() => {
-    if (!enabled || !waveformContainerRef.current || !audioUrl) {
-      if (!audioUrl && trackId && enabled) {
-        logger.error(`[useWaveSurfer ${trackId}] Invalid audio URL construction.`);
-        setError("Invalid audio URL");
-      }
-      return;
-    }
-
-    setError(null);
-    setIsReady(false);
-
-    const ws = WaveSurfer.create({
-      container: waveformContainerRef.current,
-      url: audioUrl,
-      waveColor: 'rgb(200, 150, 255)',
-      progressColor: 'rgb(100, 50, 150)',
-      height: 50,
-      cursorWidth: 1,
-      barWidth: 2,
-      barGap: 1,
-    });
-
-    wavesurferRef.current = ws;
-
-    ws.on('ready', handleReady);
-    ws.on('error', handleError);
-    ws.on('finish', handleFinish);
-
-    return () => {
-      ws.un('ready', handleReady);
-      ws.un('error', handleError);
-      ws.un('finish', handleFinish);
-      ws.destroy();
-      wavesurferRef.current = null;
+    if (enabled && containerNode && audioUrl) {
+      setError(null);
       setIsReady(false);
-    };
-  }, [trackId, audioUrl, enabled, handleReady, handleError, handleFinish]);
+
+      const ws = WaveSurfer.create({
+        container: containerNode,
+        url: audioUrl,
+        waveColor: 'rgb(200, 150, 255)',
+        progressColor: 'rgb(100, 50, 150)',
+        height: 50,
+        cursorWidth: 1,
+        barWidth: 2,
+        barGap: 1,
+      });
+      wavesurferRef.current = ws;
+
+      ws.on('ready', handleReady);
+      ws.on('error', handleError);
+      ws.on('finish', handleFinish);
+
+      return () => {
+        ws.destroy();
+        wavesurferRef.current = null;
+      };
+    } else {
+      return; 
+    }
+  }, [containerNode, audioUrl, enabled, handleReady, handleError, handleFinish]);
 
   useEffect(() => {
     const ws = wavesurferRef.current;
-    if (!ws || !isReady) return;
-
-    if (isPlaying) {
-      if (!ws.isPlaying()) {
-        ws.play().catch(e => logger.error(`[useWaveSurfer ${trackId}] Error on context play():`, e));
-      }
-    } else {
-      if (ws.isPlaying()) {
-        ws.pause();
+    if (ws && isReady) {
+      if (isPlaying) {
+        if (!ws.isPlaying()) ws.play().catch(e => logger.error(`[useWaveSurfer ${trackId}] Error on context play():`, e));
+      } else {
+        if (ws.isPlaying()) ws.pause();
       }
     }
   }, [isPlaying, isReady, trackId]);
 
-  const playTrack = useCallback(async (): Promise<void> => {
+    const playTrack = useCallback(async (): Promise<void> => {
     const ws = wavesurferRef.current;
     if (!ws) return;
     
@@ -116,7 +106,7 @@ export const useWaveSurfer = ({
   }, []);
 
   return {
-    waveformContainerRef,
+    setWaveformContainer: setContainerNode,
     isReady,
     error,
     playTrack,

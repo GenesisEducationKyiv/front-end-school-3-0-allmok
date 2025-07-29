@@ -6,9 +6,11 @@ interface LoadingIndicatorProps {
 
 const LoadingIndicator: React.FC<LoadingIndicatorProps> = (props) => {
   return (
-    <div className="loading-spinner" data-testid={props['data-testid'] ?? "loading-indicator"}>
-      loading...
-    </div>
+    <md-circular-progress
+      indeterminate
+      aria-label="Loading..."
+      data-testid={props['data-testid'] ?? "loading-indicator"}
+    ></md-circular-progress>
   );
 };
 

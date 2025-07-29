@@ -1,9 +1,6 @@
 import React, { Suspense } from 'react';
-
 import { useTracksPageController } from '../features/tracks/components/hooks/useTracksPageController';
-
 import { mapApolloErrorToAppError } from '../utils/helpers';
-
 import Pagination from '../components/Pagination/Pagination';
 import LoadingIndicator from '../components/LoadingIndicator';
 import ErrorDisplay from '../features/tracks/components/ErrorDisplay';
@@ -15,7 +12,6 @@ const TrackModals = React.lazy(() =>
   import('../features/tracks/components/TrackModals')
     .then(module => ({ default: module.TrackModals })) 
 );
-
 
 export const TracksContent: React.FC = () => {
   const controller = useTracksPageController();
@@ -39,15 +35,14 @@ export const TracksContent: React.FC = () => {
         onClick={() => controller.openModal('createTrack')}
         disabled={controller.isBusy}
       />
+
       <TrackList
         trackToUpload={controller.tracks}
         isLoading={controller.isLoading}
         selectedTrackIds={controller.selectedIds}
-        selectionProps={{
-          handleSelectToggle: controller.toggleId,
-          handleSelectAllClick: controller.handleSelectAllClick,
-          isAllSelected: controller.isAllSelected,
-        }}
+        onSelectToggle={controller.toggleId}
+        onSelectAllOnPage={controller.handleSelectAllOnPage}
+        onClearSelection={controller.clearSelection}
         onEdit={(id) => controller.openModal('editTrack', { trackId: id })}
         onDelete={(id) => controller.openModal('deleteTrack', { trackId: id })}
         onUpload={(id) => controller.openModal('uploadTrackFile', { trackId: id })}
@@ -56,6 +51,7 @@ export const TracksContent: React.FC = () => {
         onBulkDelete={controller.handleBulkDelete}
         isBulkDeleting={controller.mutationState.isBulkDeleting}
       />
+      
       {controller.meta && controller.meta.totalPages > 1 && (
         <Pagination
           currentPage={controller.page}
